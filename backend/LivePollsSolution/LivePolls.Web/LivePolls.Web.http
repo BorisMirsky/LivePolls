@@ -1,0 +1,6 @@
+@LivePolls.Web_HostAddress = http://localhost:5063
+
+GET {{LivePolls.Web_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
