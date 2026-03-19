@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
+
 namespace LivePolls.Domain.Modeles
 {
     public class User
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }   //Guid 
         public string Name { get; set; } = String.Empty;
         //public string Login { get; set; } = String.Empty;
         //public string Password { get; set; } = String.Empty;
