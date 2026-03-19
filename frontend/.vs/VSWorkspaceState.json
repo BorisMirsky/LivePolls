@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\livepolls_frontend",
+    "\\livepolls_frontend\\app"
   ],
-  "SelectedNode": "\\README.md",
+  "SelectedNode": "\\livepolls_frontend\\app\\layout.tsx",
   "PreviewInSolutionExplorer": false
 }

@@ -1,18 +1,44 @@
+using LivePolls.Web.Hubs;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+//builder.Services.AddStackExchangeRedisCache(options =>
+//{
+//    var connection = builder.Configuration.GetConnectionString("Redis");
+//    options.Configuration = connection;
+//});
+
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
+//builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+
+//if (app.Environment.IsDevelopment())
+//{
+//    app.MapOpenApi();
+//}
+
+
+builder.Services.AddCors(options =>
 {
-    app.MapOpenApi();
-}
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
+
+builder.Services.AddSignalR();
+
+app.MapHub<VoteHub>("/voting");
+
+app.UseCors();
 
 app.UseHttpsRedirection();
 
