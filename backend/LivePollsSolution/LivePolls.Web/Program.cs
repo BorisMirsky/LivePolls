@@ -1,4 +1,6 @@
 using LivePolls.Web.Hubs;
+using Microsoft.EntityFrameworkCore;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,9 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 //    var connection = builder.Configuration.GetConnectionString("Redis");
 //    options.Configuration = connection;
 //});
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=polls.db"));
 
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 //builder.Services.AddOpenApi();
 
@@ -38,11 +43,11 @@ builder.Services.AddSignalR();
 
 app.MapHub<VoteHub>("/voting");
 
-app.UseCors();
+//app.UseCors();
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+//app.UseAuthorization();
 
 app.MapControllers();
 
