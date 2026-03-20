@@ -1,4 +1,7 @@
+
+
 using LivePolls.Web.Hubs;
+using LivePolls.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -13,6 +16,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=polls.db"));
 
+//string connection = builder.Configuration.GetConnectionString("DefaultConnection")!;
+//builder.Services.AddDbContext<MedicalBookingDbContext>(options => options.UseSqlite(connection));
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();

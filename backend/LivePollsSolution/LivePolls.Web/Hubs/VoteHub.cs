@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using LivePolls.DataAccess;
+using LivePolls.Domain.Models;
 
 public class VoteHub : Hub
 {
@@ -63,7 +62,7 @@ public class VoteHub : Hub
             option.VoteCount++;
             _context.PollOptions.Update(option);
 
-            // Сохраняем голос
+            // Сохраняем голос             ЭТО МОДЕЛЬ
             var vote = new Vote
             {
                 PollId = pollId,

@@ -14,7 +14,7 @@ namespace LivePolls.Domain.Modeles
         public string UserName { get; set; } = String.Empty;
         public DateTime VotedAt { get; set; } = DateTime.UtcNow;
 
-        public Poll Poll { get; set; }
-        public PollOption Option { get; set; }
+        public Poll? Poll { get; set; }
+        public PollOption? Option { get; set; }
     }
 }
