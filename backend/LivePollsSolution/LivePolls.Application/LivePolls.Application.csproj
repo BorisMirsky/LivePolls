@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\LivePolls.DataAccess\LivePolls.DataAccess.csproj" />
+    <ProjectReference Include="..\LivePolls.Domain\LivePolls.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

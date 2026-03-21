@@ -1,6 +1,7 @@
 
 
-using LivePolls.Web.Hubs;
+using LivePolls.Web.Controllers;
+//using LivePolls.Web.Hubs;
 using LivePolls.DataAccess;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,24 +14,19 @@ var builder = WebApplication.CreateBuilder(args);
 //    var connection = builder.Configuration.GetConnectionString("Redis");
 //    options.Configuration = connection;
 //});
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite("Data Source=polls.db"));
 
-//string connection = builder.Configuration.GetConnectionString("DefaultConnection")!;
-//builder.Services.AddDbContext<MedicalBookingDbContext>(options => options.UseSqlite(connection));
+
+
+string connection = builder.Configuration.GetConnectionString("DefaultConnection")!;
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(connection));
+
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
 
-//builder.Services.AddOpenApi();
 
 var app = builder.Build();
-
-
-//if (app.Environment.IsDevelopment())
-//{
-//    app.MapOpenApi();
-//}
 
 
 builder.Services.AddCors(options =>

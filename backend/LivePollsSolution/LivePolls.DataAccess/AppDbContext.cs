@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using LivePolls.Domain.Models;
+using LivePolls.Domain.Modeles;
 
 
 
@@ -7,8 +7,11 @@ namespace LivePolls.DataAccess
 {
     public class AppDbContext : DbContext
     {
+
         public DbSet<Poll> Polls { get; set; }
+        
         public DbSet<PollOption> PollOptions { get; set; }
+        
         public DbSet<Vote> Votes { get; set; }
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }

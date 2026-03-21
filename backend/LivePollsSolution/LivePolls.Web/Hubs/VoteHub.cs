@@ -2,17 +2,21 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using LivePolls.DataAccess;
-using LivePolls.Domain.Models;
+using LivePolls.Domain.Modeles;
+using LivePolls.Domain.Abstractions;
+
+
 
 public class VoteHub : Hub
 {
 
     private readonly AppDbContext _context;
 
-    public PollHub(AppDbContext context)
+    public VoteHub(AppDbContext context)
     {
         _context = context;
     }
+
 
     /// <summary>
     /// Пользователь вступает в группу опроса. При вступлении отправляем текущие результаты.
@@ -28,6 +32,7 @@ public class VoteHub : Hub
         var results = await GetPollResults(pollId);
         await Clients.Caller.SendAsync("PollResults", results);
     }
+
 
     /// <summary>
     /// Голосование за вариант ответа.
@@ -85,31 +90,23 @@ public class VoteHub : Hub
         await Clients.Group(pollId.ToString()).SendAsync("PollResults", updatedResults);
     }
 
+
     /// <summary>
     /// Вспомогательный метод: получает текущие результаты опроса (список вариантов с количеством голосов).
     /// </summary>
-    private async Task<List<PollOptionResult>> GetPollResults(int pollId)
+    private async Task<List<PollOptionResultDTO>> GetPollResults(int pollId)
     {
         var options = await _context.PollOptions
             .Where(o => o.PollId == pollId)
-            .Select(o => new PollOptionResult
-            {
-                OptionId = o.Id,
-                Text = o.Text,
-                VoteCount = o.VoteCount
-            })
+            .Select(o => new PollOptionResultDTO
+            (
+                o.Id,
+                o.Text,
+                o.VoteCount
+            ))
             .ToListAsync();
 
         return options;
     }
 }
 
-/// <summary>
-/// DTO для передачи результатов опроса клиенту.
-/// </summary>
-public class PollOptionResult
-{
-    public int OptionId { get; set; }
-    public string Text { get; set; }
-    public int VoteCount { get; set; }
-}
