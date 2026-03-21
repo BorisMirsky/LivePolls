@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using LivePolls.Domain.Abstractions;
+
+
 
 namespace LivePolls.Application.Services
 {
     public interface IPollsRepo
     {
-        //Task<Admin?> Register(string email, string password);
-        //Task<Admin?> Login(string email, string password);
+        Task<List<PollSummaryDTO>> GetPolls();
+        Task<PollSummaryDTO> GetOnePoll(Guid id);
+        Task<PollCreatedResponseDTO> CreatePoll(CreatePollRequestDTO request);
     }
 }

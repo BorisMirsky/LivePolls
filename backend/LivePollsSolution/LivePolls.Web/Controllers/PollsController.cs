@@ -1,12 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using LivePolls.DataAccess;
+using LivePolls.Domain.Abstractions;
+using LivePolls.Domain.Modeles;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using LivePolls.DataAccess;
-using LivePolls.Domain.Modeles;
-using LivePolls.Domain.Abstractions;
+using System.Numerics;
 
 
 
@@ -29,7 +30,7 @@ namespace LivePolls.Web.Controllers
         /// Получить список всех опросов (без деталей вариантов).
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PollSummaryDTO>>> GetPolls()
+        public async Task<ActionResult<List<PollSummaryDTO>>> GetPolls()
         {
             var polls = await _context.Polls
                 .Where(p => p.IsActive)
@@ -46,11 +47,19 @@ namespace LivePolls.Web.Controllers
         }
 
 
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<PollSummaryDTO>>> GetOnePoll()
-        //{
-        //
-        //}
+        [HttpGet]
+        //public async Task<ActionResult<DoctorResponse>> GetDoctor(Guid id)
+        public async Task<ActionResult<PollSummaryDTO> GetOnePoll(Guid id)
+        {
+            Poll p = await _doctorService.Get(id);
+
+            if (p != null)
+            {
+                return Ok(p);
+            }
+
+            return BadRequest(new { message = "Poll is not recognized" });
+        }
 
 
         /// <summary>
@@ -58,6 +67,7 @@ namespace LivePolls.Web.Controllers
         /// </summary>
         /// <param name="request">Модель создания опроса</param>
         [HttpPost]
+        //public async Task<ActionResult<PollCreatedResponseDTO>> CreatePoll([FromBody] CreatePollRequestDTO request)
         public async Task<ActionResult<PollCreatedResponseDTO>> CreatePoll([FromBody] CreatePollRequestDTO request)
         {
             if (!ModelState.IsValid)
@@ -82,35 +92,7 @@ namespace LivePolls.Web.Controllers
 
             // Возвращаем ID созданного опроса
             return Ok(new PollCreatedResponseDTO (poll.Id ));
+            //return Ok();
         }
     }
-
-
-
-
-    // DTO для ответа со списком опросов
-    //public class PollSummary
-    //{
-    //    public int Id { get; set; }
-    //    public string Question { get; set; }
-    //    public DateTime CreatedAt { get; set; }
-    //    public int OptionsCount { get; set; }
-    //}
-
-    // DTO для запроса создания опроса
-    //public class CreatePollRequest
-    //{
-    //    [Required]
-    //    public string Question { get; set; }
-
-    //    [Required]
-    //    [MinLength(2, ErrorMessage = "Должно быть минимум 2 варианта ответа")]
-    //    public List<string> Options { get; set; }
-    //}
-
-    // DTO для ответа с ID созданного опроса
-    //public class PollCreatedResponse
-    //{
-    //    public int PollId { get; set; }
-    //}
 }

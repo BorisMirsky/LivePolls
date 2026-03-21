@@ -16,8 +16,11 @@ namespace LivePolls.Application.Services
             _pollsRepo = pollsRepo;
         }
 
-
+        public async Task<List<PollSummaryDTO>> GetPolls();
+        {
+            return await _pollsRepo.GetPolls();
     }
+}
 }
 
 //public async Task<Admin> Register(string email, string password)
