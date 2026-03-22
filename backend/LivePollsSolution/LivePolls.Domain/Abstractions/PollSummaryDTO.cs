@@ -6,7 +6,7 @@ namespace LivePolls.Domain.Abstractions
     (
         int Id,
         string Question,
-        DateTime CreatedAt,
-        int OptionsCount
+        DateTime CreatedAt
+        //int? OptionsCount
      );
 }

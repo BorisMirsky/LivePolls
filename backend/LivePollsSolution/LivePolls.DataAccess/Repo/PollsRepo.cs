@@ -17,7 +17,8 @@ namespace LivePolls.DataAccess.Repo
             _context = context;
         }
 
-        public async Task<List<PollSummaryDTO>> GetPolls()
+        //public async Task<List<PollSummaryDTO>> GetPolls()
+        public async Task<List<Poll>> GetPolls()
         {
             var entities = await _context.Polls
                //.Select(g => g.OrderByDescending(item => item.CreatedAt).FirstOrDefault())
@@ -28,24 +29,23 @@ namespace LivePolls.DataAccess.Repo
                 Debug.WriteLine("there are not any polls");
             }
 
-            var Dtos = entities
-                .Select(b => new BookingDTO(b.Id, b.DoctorId, b.PatientId,
-                                            b.TimeslotId, b.IsBooked, b.IsClosed,
-                                            b.CreatedAt,
-                                            b.Doctor?.UserName,
-                                            b.Doctor?.Speciality,
-                                            b.Patient?.UserName,
-                                            b.Timeslot?.DatetimeStart,
-                                            b.Timeslot?.DatetimeStop))
-                .ToList();
+            //new PollSummaryDTO
+            //var Dtos = entities
+            //    .Select(b => new PollSummaryDTO(b.Id,
+            //                                b.Question, 
+            //                                b.CreatedAt))
+            //    .ToList();
 
-            return Dtos;
+            return entities; // Dtos;
         }
 
-        public async Task<PollSummaryDTO> GetOnePoll(Guid id){
+        public async Task<PollSummaryDTO> GetOnePoll(Guid id)
+        {
+
         }
 
-        public async Task<PollCreatedResponseDTO> CreatePoll(CreatePollRequestDTO request)
+        //PollCreatedResponseDTO   CreatePollRequestDTO
+        public async Task<Poll> CreatePoll(Poll request)
         {
 
         }

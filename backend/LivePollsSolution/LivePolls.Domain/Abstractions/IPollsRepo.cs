@@ -1,4 +1,5 @@
 ﻿using LivePolls.Domain.Abstractions;
+using LivePolls.Domain.Modeles;
 
 
 
@@ -8,6 +9,7 @@ namespace LivePolls.Application.Services
     {
         Task<List<PollSummaryDTO>> GetPolls();
         Task<PollSummaryDTO> GetOnePoll(Guid id);   // Guid  int
-        Task<PollCreatedResponseDTO> CreatePoll(CreatePollRequestDTO request);
+        //Task<PollCreatedResponseDTO> CreatePoll(CreatePollRequestDTO request);
+        Task<Poll> CreatePoll(Poll request);
     }
 }
