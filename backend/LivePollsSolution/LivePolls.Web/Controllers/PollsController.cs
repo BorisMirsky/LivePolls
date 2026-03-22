@@ -1,6 +1,7 @@
 ﻿using LivePolls.DataAccess;
 using LivePolls.Domain.Abstractions;
 using LivePolls.Domain.Modeles;
+using LivePolls.Application.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,11 +20,16 @@ namespace LivePolls.Web.Controllers
     [ApiController]
     public class PollsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IPollsService _pollsService;
+        //public BookingsController(IBookingService bookingService)
+        //{
+        //    _bookingService = bookingService;
+        //}
+        //private readonly AppDbContext _context;
 
-        public PollsController(AppDbContext context)
+        public PollsController(IPollsService pollsService)
         {
-            _context = context;
+            _pollsService = pollsService;
         }
 
         /// <summary>
@@ -32,26 +38,32 @@ namespace LivePolls.Web.Controllers
         [HttpGet]
         public async Task<ActionResult<List<PollSummaryDTO>>> GetPolls()
         {
-            var polls = await _context.Polls
-                .Where(p => p.IsActive)
-                .Select(p => new PollSummaryDTO
-                (
-                    p.Id,
-                    p.Question,
-                    p.CreatedAt,
-                    p.Options.Count
-                ))
-                .ToListAsync();
+            var polls = await _pollsService.GetPolls();
+            if (polls != null)
+            {
+                return Ok(polls);
+            }
 
-            return Ok(polls);
+            return BadRequest(new { message = "there'are not any polls" });
+            //var polls = await _context.Polls
+            //    .Where(p => p.IsActive)
+            //    .Select(p => new PollSummaryDTO
+            //    (
+            //        p.Id,
+            //        p.Question,
+            //        p.CreatedAt,
+            //        p.Options.Count
+            //    ))
+            //    .ToListAsync();
+
+            //return Ok(polls);
         }
 
 
         [HttpGet]
-        //public async Task<ActionResult<DoctorResponse>> GetDoctor(Guid id)
-        public async Task<ActionResult<PollSummaryDTO> GetOnePoll(Guid id)
+        public async Task<ActionResult<PollSummaryDTO>> GetOnePoll(Guid id)
         {
-            Poll p = await _doctorService.Get(id);
+            Poll p = await _pollsService.GetOnePoll(id);
 
             if (p != null)
             {
@@ -72,26 +84,30 @@ namespace LivePolls.Web.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+            await _pollsService.CreatePoll(request.SlotId, request.PatientId,
+                                                request.DoctorId, request.IsBooked);
+            return Ok();
 
-            // Создаём опрос
-            var poll = new Poll
-            {
-                Question = request.Question,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = true
-            };
 
-            // Добавляем варианты ответов
-            foreach (var optionText in request.Options)
-            {
-                poll.Options.Add(new PollOption { Text = optionText });
-            }
+            //// Создаём опрос
+            //var poll = new Poll
+            //{
+            //    Question = request.Question,
+            //    CreatedAt = DateTime.UtcNow,
+            //    IsActive = true
+            //};
 
-            _context.Polls.Add(poll);
-            await _context.SaveChangesAsync();
+            //// Добавляем варианты ответов
+            //foreach (var optionText in request.Options)
+            //{
+            //    poll.Options.Add(new PollOption { Text = optionText });
+            //}
 
-            // Возвращаем ID созданного опроса
-            return Ok(new PollCreatedResponseDTO (poll.Id ));
+            //_context.Polls.Add(poll);
+            //await _context.SaveChangesAsync();
+
+            //// Возвращаем ID созданного опроса
+            //return Ok(new PollCreatedResponseDTO (poll.Id ));
             //return Ok();
         }
     }

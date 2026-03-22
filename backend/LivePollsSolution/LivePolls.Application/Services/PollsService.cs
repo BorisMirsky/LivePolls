@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using LivePolls.Domain.Modeles;
+﻿using LivePolls.Application.Services;
 using LivePolls.Domain.Abstractions;
+using LivePolls.Domain.Modeles;
 
 namespace LivePolls.Application.Services
 {
@@ -19,8 +16,18 @@ namespace LivePolls.Application.Services
         public async Task<List<PollSummaryDTO>> GetPolls();
         {
             return await _pollsRepo.GetPolls();
+        }
+
+        public async Task<List<PollSummaryDTO>> GetOnePoll(Guid id);
+        {
+                return await _pollsRepo.GetOnePoll();
+        }
+
+        public async Task<PollCreatedResponseDTO> CreatePoll(CreatePollRequestDTO request);
+        {
+            return await _pollsRepo.CreatePoll(request);
+        }
     }
-}
 }
 
 //public async Task<Admin> Register(string email, string password)
