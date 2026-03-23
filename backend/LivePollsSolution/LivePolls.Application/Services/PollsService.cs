@@ -13,17 +13,17 @@ namespace LivePolls.Application.Services
             _pollsRepo = pollsRepo;
         }
 
-        public async Task<List<PollSummaryDTO>> GetPolls();
+        public async Task<List<Poll>> GetPolls();
         {
             return await _pollsRepo.GetPolls();
         }
 
-        public async Task<List<PollSummaryDTO>> GetOnePoll(Guid id);
+        public async Task<List<Poll>> GetOnePoll(Guid id);
         {
                 return await _pollsRepo.GetOnePoll();
         }
 
-        public async Task<PollCreatedResponseDTO> CreatePoll(CreatePollRequestDTO request);
+        public async Task<Poll> CreatePoll(Poll request);
         {
             return await _pollsRepo.CreatePoll(request);
         }

@@ -3,6 +3,7 @@ using LivePolls.Domain.Abstractions;
 using LivePolls.Domain.Modeles;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Numerics;
 
 
 
@@ -21,27 +22,27 @@ namespace LivePolls.DataAccess.Repo
         public async Task<List<Poll>> GetPolls()
         {
             var entities = await _context.Polls
-               //.Select(g => g.OrderByDescending(item => item.CreatedAt).FirstOrDefault())
                .ToListAsync();
 
             if (entities.Equals(0))
             {
                 Debug.WriteLine("there are not any polls");
             }
-
-            //new PollSummaryDTO
-            //var Dtos = entities
-            //    .Select(b => new PollSummaryDTO(b.Id,
-            //                                b.Question, 
-            //                                b.CreatedAt))
-            //    .ToList();
-
-            return entities; // Dtos;
+            return entities; 
         }
 
-        public async Task<PollSummaryDTO> GetOnePoll(Guid id)
+        public async Task<Poll> GetOnePoll(Guid id)
         {
+            Poll? entity = await _context.Polls
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == id);
 
+            if (entity.Equals(0))
+            {
+                Debug.WriteLine("there are not poll with such id");
+                //throw new Exception($"Doctors with speciality {speciality} not found");
+            }
+            return entity;
         }
 
         //PollCreatedResponseDTO   CreatePollRequestDTO

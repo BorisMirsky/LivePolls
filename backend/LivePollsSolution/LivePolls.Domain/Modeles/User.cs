@@ -10,10 +10,10 @@ namespace LivePolls.Domain.Modeles
 {
     public class User
     {
-        public int Id { get; set; }   //Guid 
+        public Guid Id { get; set; }   //Guid 
         public string Name { get; set; } = String.Empty;
-        //public string Login { get; set; } = String.Empty;
-        //public string Password { get; set; } = String.Empty;
+        public string? Login { get; set; } = String.Empty;
+        public string? Password { get; set; } = String.Empty;
 
     }
 }

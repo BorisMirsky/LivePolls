@@ -1,0 +1,64 @@
+
+
+Hub лежит в том же слое что и контроллеры. И так же имеет проекцию в другие слои
+- Application & DataAccess. Можно вообще сказать что это типа как контроллер, но 
+наследуемый от другого родителя.
+
+
+todo
+
+
+1) 
+   таблицы-поля-модели - что нужно? как будут ходить данные
+   Для сущностей будут бизнес-правила, лежащие в своём слое (см DS).
+
+   Poll - Id, CreatorId, CreatedAt, EndDate, IsActive, Question
+   PollOption - Id, PollId, Text, Order
+   User - Id, Name, Login?, Password?
+     
+    Vote - Id, PollId, OptionId  - ?
+   
+
+
+
+
+2) Сделать понятные:
+- DTO (папка Abstractions, уровень DataAccess)
+
+- responces, requestes (папка Contracts, уровень Web) 
+  Контроллер принимает ([FromBody] Request)
+             возвращает Response
+
+  Одно и то же.
+  Хранить в слое Web. 
+
+
+
+
+[Route("CreateBooking")]     
+        [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "patient")]
+        public async Task<ActionResult> CreateBooking([FromBody] BookingRequest request)
+        {
+            await _bookingService.CreateBooking(request.SlotId, request.PatientId,
+                                                request.DoctorId, request.IsBooked);
+            return Ok();
+        }
+
+
+
+[Route("GetByPatient")]
+        [HttpGet]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, doctor, patient")]
+        public async Task<ActionResult<List<BookingDTO>>> GetByPatient([FromQuery] Guid id)
+        {
+            List<BookingDTO> bookings = await _bookingService.GetByPatient(id);
+
+            if (bookings != null)
+            {
+                return Ok(bookings);
+            }
+
+            return BadRequest(new { message = "there'are not such patient" });
+        }
+
