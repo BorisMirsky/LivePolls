@@ -1,6 +1,7 @@
 ﻿using LivePolls.Application.Services;
 using LivePolls.Domain.Abstractions;
 using LivePolls.Domain.Modeles;
+using Microsoft.Extensions.Options;
 
 namespace LivePolls.Application.Services
 {
@@ -10,22 +11,25 @@ namespace LivePolls.Application.Services
 
         public PollsService(IPollsRepo pollsRepo)
         {
-            _pollsRepo = pollsRepo;
+               _pollsRepo = pollsRepo;
         }
 
         public async Task<List<Poll>> GetPolls();
         {
-            return await _pollsRepo.GetPolls();
+               return await _pollsRepo.GetPolls();
         }
 
-        public async Task<List<Poll>> GetOnePoll(Guid id);
+        public async Task<Poll> GetOnePoll(Guid id);
         {
                 return await _pollsRepo.GetOnePoll();
         }
 
-        public async Task<Poll> CreatePoll(Poll request);
+        public async Task<Poll> CreatePoll(string Question,
+                                            List<string>? Options,
+                                            DateTime? EndDate,
+                                            Guid CreatorId);
         {
-            return await _pollsRepo.CreatePoll(request);
+            return await _pollsRepo.CreatePoll(Question,Options?,EndDate?,CreatorId);
         }
     }
 }

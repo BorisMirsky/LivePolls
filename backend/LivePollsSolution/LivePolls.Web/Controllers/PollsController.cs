@@ -84,8 +84,7 @@ namespace LivePolls.Web.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            await _pollsService.CreatePoll(request.SlotId, request.PatientId,
-                                                request.DoctorId, request.IsBooked);
+            await _pollsService.CreatePoll(request.CreatorId, request.Question);
             return Ok();
 
 

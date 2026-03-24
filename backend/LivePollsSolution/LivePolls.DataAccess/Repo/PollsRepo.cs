@@ -46,7 +46,11 @@ namespace LivePolls.DataAccess.Repo
         }
 
         //PollCreatedResponseDTO   CreatePollRequestDTO
-        public async Task<Poll> CreatePoll(Poll request)
+        public async Task<Poll> CreatePoll(string Question,
+                                            List<string>? Options,
+                                            DateTime? EndDate,
+                                            Guid CreatorId
+            )
         {
 
         }
