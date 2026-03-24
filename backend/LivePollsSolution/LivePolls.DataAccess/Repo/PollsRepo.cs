@@ -4,6 +4,7 @@ using LivePolls.Domain.Modeles;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 
 
@@ -11,14 +12,14 @@ namespace LivePolls.DataAccess.Repo
 {
     public class PollsRepo : IPollsRepo
     {
-        private readonly AppDbContext _context;
 
+        private readonly AppDbContext _context;
         public PollsRepo(AppDbContext context)
         {
             _context = context;
         }
 
-        //public async Task<List<PollSummaryDTO>> GetPolls()
+
         public async Task<List<Poll>> GetPolls()
         {
             var entities = await _context.Polls
@@ -45,14 +46,20 @@ namespace LivePolls.DataAccess.Repo
             return entity;
         }
 
-        //PollCreatedResponseDTO   CreatePollRequestDTO
-        public async Task<Poll> CreatePoll(string Question,
-                                            List<string>? Options,
-                                            DateTime? EndDate,
-                                            Guid CreatorId
-            )
-        {
 
+        public async Task<Poll> CreatePoll(CreatePollRequestDTO request)
+        {
+            var pollId = Guid.NewGuid();
+            var poll = new Poll();
+            poll.CreatorId = request.CreatorId;
+            poll.CreatedAt = DateTime.UtcNow;
+            poll.EndDate = request.EndDate;
+            poll.IsActive = true;
+            poll.Options = request.Options.Select(o => new PollOption { Id = Guid.NewGuid(), Text = o, PollId = pollId }).ToList();
+            await _context.Polls.AddAsync(poll);
+            //await _context.PollOptions.AddAsync(poll.Options);
+            await _context.SaveChangesAsync();
+            return poll;
         }
     }
 }

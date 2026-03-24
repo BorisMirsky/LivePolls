@@ -5,27 +5,17 @@ using LivePolls.Application.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Numerics;
+
 
 
 
 namespace LivePolls.Web.Controllers
 {
-
-
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class PollsController : ControllerBase
     {
         private readonly IPollsService _pollsService;
-        //public BookingsController(IBookingService bookingService)
-        //{
-        //    _bookingService = bookingService;
-        //}
-        //private readonly AppDbContext _context;
 
         public PollsController(IPollsService pollsService)
         {
@@ -35,8 +25,10 @@ namespace LivePolls.Web.Controllers
         /// <summary>
         /// Получить список всех опросов (без деталей вариантов).
         /// </summary>
+        [Route("GetPolls")]
         [HttpGet]
-        public async Task<ActionResult<List<PollSummaryDTO>>> GetPolls()
+        //public async Task<ActionResult<List<PollSummaryDTO>>> GetPolls()
+        public async Task<ActionResult<List<Poll>>> GetPolls()
         {
             var polls = await _pollsService.GetPolls();
             if (polls != null)
@@ -60,8 +52,10 @@ namespace LivePolls.Web.Controllers
         }
 
 
+        [Route("GetOnePoll")]
         [HttpGet]
-        public async Task<ActionResult<PollSummaryDTO>> GetOnePoll(Guid id)
+        //public async Task<ActionResult<PollSummaryDTO>> GetOnePoll(Guid id)
+        public async Task<ActionResult<Poll>> GetOnePoll([FromQuery]  Guid id)
         {
             Poll p = await _pollsService.GetOnePoll(id);
 
@@ -78,13 +72,14 @@ namespace LivePolls.Web.Controllers
         /// Создать новый опрос.
         /// </summary>
         /// <param name="request">Модель создания опроса</param>
+        [Route("CreatePoll")]
         [HttpPost]
-        //public async Task<ActionResult<PollCreatedResponseDTO>> CreatePoll([FromBody] CreatePollRequestDTO request)
-        public async Task<ActionResult<PollCreatedResponseDTO>> CreatePoll([FromBody] CreatePollRequestDTO request)
+        //public async Task<ActionResult<CreatePollRequestDTO>> CreatePoll([FromBody] CreatePollRequestDTO request)
+        public async Task<ActionResult<Poll>> CreatePoll([FromBody] CreatePollRequestDTO request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            await _pollsService.CreatePoll(request.CreatorId, request.Question);
+            await _pollsService.CreatePoll(request); //.CreatorId, request.Question);
             return Ok();
 
 

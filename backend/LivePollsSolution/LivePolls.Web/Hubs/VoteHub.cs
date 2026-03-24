@@ -23,7 +23,7 @@ public class VoteHub : Hub
     /// </summary>
     /// <param name="pollId">ID опроса</param>
     /// <param name="userName">Имя пользователя (введённое на клиенте)</param>
-    public async Task JoinPollGroup(int pollId, string userName)
+    public async Task JoinPollGroup(Guid pollId, string userName)
     {
         // Добавляем соединение в группу SignalR
         await Groups.AddToGroupAsync(Context.ConnectionId, pollId.ToString());
@@ -40,12 +40,12 @@ public class VoteHub : Hub
     /// <param name="pollId">ID опроса</param>
     /// <param name="optionId">ID выбранного варианта</param>
     /// <param name="userName">Имя пользователя</param>
-    public async Task Vote(int pollId, int optionId, string userName)
+    public async Task Vote(Guid pollId, Guid optionId, Guid CreatorId ) //string userName)
     {
         // Проверяем, существует ли опрос и вариант
         var poll = await _context.Polls
             .Include(p => p.Options)
-            .FirstOrDefaultAsync(p => p.Id == pollId && p.IsActive);
+            .FirstOrDefaultAsync(p => p.Id == pollId); // && p.IsActive);
         if (poll == null)
             throw new HubException("Опрос не найден или уже закрыт");
 
@@ -54,8 +54,8 @@ public class VoteHub : Hub
             throw new HubException("Вариант ответа не найден");
 
         // Проверяем, не голосовал ли уже пользователь в этом опросе
-        var existingVote = await _context.Votes
-            .FirstOrDefaultAsync(v => v.PollId == pollId && v.UserName == userName);
+        var existingVote = await _context.Polls //Votes
+            .FirstOrDefaultAsync(p => p.Id == pollId && p.CreatorId == CreatorId);
         if (existingVote != null)
             throw new HubException("Вы уже голосовали в этом опросе");
 
@@ -64,7 +64,7 @@ public class VoteHub : Hub
         try
         {
             // Увеличиваем счётчик голосов варианта
-            option.VoteCount++;
+            //option.VoteCount++;
             _context.PollOptions.Update(option);
 
             // Сохраняем голос             ЭТО МОДЕЛЬ
@@ -72,9 +72,9 @@ public class VoteHub : Hub
             {
                 PollId = pollId,
                 OptionId = optionId,
-                UserName = userName
+                //UserName = userName
             };
-            _context.Votes.Add(vote);
+            //_context.Votes.Add(vote);
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
@@ -94,15 +94,15 @@ public class VoteHub : Hub
     /// <summary>
     /// Вспомогательный метод: получает текущие результаты опроса (список вариантов с количеством голосов).
     /// </summary>
-    private async Task<List<PollOptionResultDTO>> GetPollResults(int pollId)
+    private async Task<List<PollOptionResultDTO>> GetPollResults(Guid pollId)
     {
         var options = await _context.PollOptions
-            .Where(o => o.PollId == pollId)
+            .Where(o => o.Id == pollId)
             .Select(o => new PollOptionResultDTO
             (
                 o.Id,
                 o.Text,
-                o.VoteCount
+                o.Order   //VoteCount
             ))
             .ToListAsync();
 

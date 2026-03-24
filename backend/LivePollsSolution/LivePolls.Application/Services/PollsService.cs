@@ -14,32 +14,21 @@ namespace LivePolls.Application.Services
                _pollsRepo = pollsRepo;
         }
 
-        public async Task<List<Poll>> GetPolls();
+        public async Task<List<Poll>> GetPolls()
         {
                return await _pollsRepo.GetPolls();
         }
 
-        public async Task<Poll> GetOnePoll(Guid id);
+        public async Task<Poll> GetOnePoll(Guid id)
         {
-                return await _pollsRepo.GetOnePoll();
+                return await _pollsRepo.GetOnePoll(id);
         }
 
-        public async Task<Poll> CreatePoll(string Question,
-                                            List<string>? Options,
-                                            DateTime? EndDate,
-                                            Guid CreatorId);
+        public async Task<Poll> CreatePoll(CreatePollRequestDTO request)
         {
-            return await _pollsRepo.CreatePoll(Question,Options?,EndDate?,CreatorId);
+            //request.EndDate = request.EndDate ?? DateTime.UtcNow.AddDays(7);
+            return await _pollsRepo.CreatePoll(request);
         }
     }
 }
 
-//public async Task<Admin> Register(string email, string password)
-//{
-//    return await _adminRepo.Register(email, password);
-//}
-
-//public async Task<Admin> LoginAccount(string email, string password)
-//{
-//    return await _adminRepo.Login(email, password);
-//}
