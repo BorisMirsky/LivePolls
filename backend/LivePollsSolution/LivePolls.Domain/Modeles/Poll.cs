@@ -13,8 +13,7 @@ namespace LivePolls.Domain.Modeles
         public Boolean? IsActive { get; set; } = false;
         public string Question { get; set; } = String.Empty;
         public List<PollOption> Options { get; set; } = [];
-        //public ICollection<PollOption> Options { get; set; } = new List<PollOption>();
+
     }
 }
-//string Question,List<string>? Options,DateTime? EndDate,Guid CreatorId
 

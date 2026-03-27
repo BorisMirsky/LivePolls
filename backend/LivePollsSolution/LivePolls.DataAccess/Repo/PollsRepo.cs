@@ -53,8 +53,10 @@ namespace LivePolls.DataAccess.Repo
             var poll = new Poll();
             poll.CreatorId = request.CreatorId;
             poll.CreatedAt = DateTime.UtcNow;
-            poll.EndDate = request.EndDate;
+            DateTime today = DateTime.Now;
+            poll.EndDate = today.AddDays(7);
             poll.IsActive = true;
+            poll.Question = request.Question;
             poll.Options = request.Options.Select(o => new PollOption { Id = Guid.NewGuid(), Text = o, PollId = pollId }).ToList();
             await _context.Polls.AddAsync(poll);
             //await _context.PollOptions.AddAsync(poll.Options);

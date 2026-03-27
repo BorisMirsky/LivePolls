@@ -2,6 +2,7 @@
 using LivePolls.Domain.Abstractions;
 using LivePolls.Domain.Modeles;
 using Microsoft.Extensions.Options;
+using System;
 
 namespace LivePolls.Application.Services
 {
@@ -26,7 +27,13 @@ namespace LivePolls.Application.Services
 
         public async Task<Poll> CreatePoll(CreatePollRequestDTO request)
         {
-            //request.EndDate = request.EndDate ?? DateTime.UtcNow.AddDays(7);
+            //var updatedPerson = person with { Age = 31 }; 
+            DateTime today = DateTime.Now;
+            DateTime tomorrow = today.AddDays(1);
+            //int endday = request.EndDate ?? DateTime.UtcNow.AddDays(7);
+            //request.EndDate.Add("Chandler");
+            //var updatedPerson = person with { Age = 31 }; 
+            //var updatedRequest = request with { EndDate = today.AddDays(request.EndDate) };
             return await _pollsRepo.CreatePoll(request);
         }
     }

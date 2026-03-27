@@ -61,9 +61,10 @@ if (app.Environment.IsDevelopment())
 app.UseCors(x =>
 {
     x.WithHeaders().AllowAnyHeader();
-    x.WithOrigins("http://localhost:5063");     // 5269 for Swagger
+    x.WithOrigins("http://localhost:5063");     
     x.WithMethods().AllowAnyMethod();
 });
 
 app.MapControllers();
 app.Run();
+//http://localhost:5063/swagger/index.html

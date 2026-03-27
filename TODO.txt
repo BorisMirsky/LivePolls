@@ -35,6 +35,31 @@ todo
 
 
 
+--------------------Гоняю Сваггера (CRUD)  --------------------
+   GetOne
+возвращает пустой список Options 
+
+   Create
+Опции сохраняются но не понимаю как
+EndDate некорректно записывает
+
+
+   GetAll
+Работает, но с ошибками выше
+
+
+"isActive": true  - добавить логику проверки на срок действия
+
+
+
+
+
+
+http://localhost:5063/swagger/index.html
+
+
+
+
 [Route("CreateBooking")]     
         [HttpPost]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "patient")]

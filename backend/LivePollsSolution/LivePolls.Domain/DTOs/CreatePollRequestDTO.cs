@@ -6,9 +6,8 @@ namespace LivePolls.Domain.Abstractions
     (
         string Question,
         List<string>? Options,
-        DateTime? EndDate,
+        int? EndDate,
         Guid CreatorId
     );
 }
 
-//Id, CreatorId, CreatedAt, EndDate, IsActive, Question
