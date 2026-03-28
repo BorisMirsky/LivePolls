@@ -8,7 +8,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace LivePolls.DataAccess.Configuration
 {
-    public class PollOptionConfiguration : IEntityTypeConfiguration<PollOption>
+    public class PollOptionConfiguration: IEntityTypeConfiguration<PollOption>
     {
         public void Configure(EntityTypeBuilder<PollOption> builder)
         {
@@ -18,6 +18,10 @@ namespace LivePolls.DataAccess.Configuration
                 .WithMany(p => p.Options)
                 .HasForeignKey(o => o.PollId)
                 .IsRequired();
+            builder.Property(b => b.PollId)
+                .IsRequired();
+            builder.Property(p => p.Text);
+            builder.Property(p => p.Order);
         }
     }
 }

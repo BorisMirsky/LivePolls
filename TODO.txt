@@ -5,21 +5,7 @@ Hub лежит в том же слое что и контроллеры. И та
 наследуемый от другого родителя.
 
 
-todo
-
-
-1) 
-   таблицы-поля-модели - что нужно? как будут ходить данные
-   Для сущностей будут бизнес-правила, лежащие в своём слое (см DS).
-
-   Poll - Id, CreatorId, CreatedAt, EndDate, IsActive, Question
-   PollOption - Id, PollId, Text, Order
-   User - Id, Name, Login?, Password?
-     
-    Vote - Id, PollId, OptionId  - ?
-   
-
-
+todo 
 
 
 2) Сделать понятные:
@@ -28,11 +14,7 @@ todo
 - responces, requestes (папка Contracts, уровень Web) 
   Контроллер принимает ([FromBody] Request)
              возвращает Response
-
-  Это одно и то же.
-  Хранить в слое Web. 
-
-
+  Это одно и то же.  Хранить в слое Web. 
 
 
 --------------------   Гоняю Сваггера (CRUD)   --------------------
@@ -52,7 +34,7 @@ EndDate некорректно записывает
 "isActive": true  + логикa проверки на срок действия              Services
 
 
-
+CreatorId - откуда берётся?
 
 
 

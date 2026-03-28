@@ -16,7 +16,16 @@ namespace LivePolls.DataAccess.Configuration
 
             builder
                 .HasMany(p => p.Options)
-                .WithOne(o => o.Poll);
+                .WithOne(o => o.Poll)
+                .IsRequired();
+
+            builder.Property(p => p.CreatorId)
+                .IsRequired();
+            builder.Property(p => p.Question)
+                .IsRequired();
+            builder.Property(p => p.CreatedAt);
+            builder.Property(p => p.IsActive);
+            builder.Property(p => p.EndDate);
         }
     }
 }

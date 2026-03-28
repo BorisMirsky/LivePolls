@@ -26,8 +26,13 @@ builder.Services.AddControllers();
 //builder.Services.AddSignalR();
 builder.Services.AddScoped<IPollsService, PollsService>();
 builder.Services.AddScoped<IPollsRepo, PollsRepo>();
-//builder.Services.AddHealthChecks();
+
+
+builder.Services.AddHealthChecks();
 builder.Services.AddSwaggerGen();
+//builder.Services.AddAuthorization();
+
+
 
 var app = builder.Build();
 
@@ -53,18 +58,16 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseCors();
-
 //app.UseHttpsRedirection();
-
 //app.UseAuthorization();
 
 app.UseCors(x =>
 {
     x.WithHeaders().AllowAnyHeader();
-    x.WithOrigins("http://localhost:5063");     
+    x.WithOrigins("http://localhost:5063");   //   "h ttp://localhost:3000"
     x.WithMethods().AllowAnyMethod();
 });
 
 app.MapControllers();
 app.Run();
-//http://localhost:5063/swagger/index.html
+

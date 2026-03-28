@@ -2,6 +2,7 @@
 using LivePolls.Domain.Abstractions;
 using LivePolls.Domain.Modeles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -14,9 +15,11 @@ namespace LivePolls.DataAccess.Repo
     {
 
         private readonly AppDbContext _context;
-        public PollsRepo(AppDbContext context)
+        private readonly IConfiguration _configuration;
+        public PollsRepo(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
 
@@ -24,6 +27,17 @@ namespace LivePolls.DataAccess.Repo
         {
             var entities = await _context.Polls
                .ToListAsync();
+            foreach (var ent in entities)
+            {
+                var options = _context.PollOptions
+                .Where(o => o.PollId == ent.Id)
+                .ToList();
+                foreach (var opt in options)
+                {
+                    ent.Options.Add(opt);
+                }
+
+            }
 
             if (entities.Equals(0))
             {
@@ -34,16 +48,24 @@ namespace LivePolls.DataAccess.Repo
 
         public async Task<Poll> GetOnePoll(Guid id)
         {
+            var options = _context.PollOptions
+                .Where(o => o.PollId == id)
+                .ToList();
             Poll? entity = await _context.Polls
                 .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id);
 
-            //if (entity.Equals(0))
-            //{
-            //    Debug.WriteLine("there are not poll with such id");
-            //    //throw new Exception($"Doctors with speciality {speciality} not found");
-            //}
-            return entity!;
+            foreach (var opt in options)
+            {
+                entity.Options.Add(opt);
+
+            }
+                //if (entity.Equals(0))
+                //{
+                //    Debug.WriteLine("there are not poll with such id");
+                //    //throw new Exception($"Doctors with speciality {speciality} not found");
+                //}
+                return entity!;
         }
 
 
@@ -59,6 +81,10 @@ namespace LivePolls.DataAccess.Repo
             poll.Question = request.Question;
             poll.Options = request.Options.Select(o => new PollOption { Id = Guid.NewGuid(), Text = o, PollId = pollId }).ToList();
             await _context.Polls.AddAsync(poll);
+            foreach (var opt in poll.Options)
+            {
+                await _context.PollOptions.AddAsync(opt);
+            }
             //await _context.PollOptions.AddAsync(poll.Options);
             await _context.SaveChangesAsync();
             return poll;

@@ -5,6 +5,7 @@ using LivePolls.Application.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 
 
@@ -58,9 +59,14 @@ namespace LivePolls.Web.Controllers
         public async Task<ActionResult<Poll>> GetOnePoll([FromQuery]  Guid id)
         {
             Poll p = await _pollsService.GetOnePoll(id);
-
+            
             if (p != null)
             {
+                //Debug.WriteLine("");
+                //Debug.WriteLine("");
+                //Debug.WriteLine(p.Options[0]);
+                //Debug.WriteLine("");
+                //Debug.WriteLine("");
                 return Ok(p);
             }
 
