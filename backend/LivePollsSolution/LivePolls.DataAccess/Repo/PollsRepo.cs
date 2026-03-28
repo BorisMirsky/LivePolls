@@ -38,12 +38,12 @@ namespace LivePolls.DataAccess.Repo
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Id == id);
 
-            if (entity.Equals(0))
-            {
-                Debug.WriteLine("there are not poll with such id");
-                //throw new Exception($"Doctors with speciality {speciality} not found");
-            }
-            return entity;
+            //if (entity.Equals(0))
+            //{
+            //    Debug.WriteLine("there are not poll with such id");
+            //    //throw new Exception($"Doctors with speciality {speciality} not found");
+            //}
+            return entity!;
         }
 
 
