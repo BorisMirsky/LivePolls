@@ -73,7 +73,7 @@ namespace LivePolls.DataAccess.Repo
         {
             var pollId = Guid.NewGuid();
             var poll = new Poll();
-            poll.CreatorId = request.CreatorId;
+            poll.CreatorId = Guid.NewGuid();    // request.CreatorId;                   
             poll.CreatedAt = DateTime.UtcNow;
             DateTime today = DateTime.Now;
             poll.EndDate = today.AddDays(7);

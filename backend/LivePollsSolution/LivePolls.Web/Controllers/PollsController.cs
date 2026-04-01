@@ -23,12 +23,9 @@ namespace LivePolls.Web.Controllers
             _pollsService = pollsService;
         }
 
-        /// <summary>
-        /// Получить список всех опросов (без деталей вариантов).
-        /// </summary>
+
         [Route("GetPolls")]
         [HttpGet]
-        //public async Task<ActionResult<List<PollSummaryDTO>>> GetPolls()
         public async Task<ActionResult<List<Poll>>> GetPolls()
         {
             var polls = await _pollsService.GetPolls();
@@ -55,18 +52,12 @@ namespace LivePolls.Web.Controllers
 
         [Route("GetOnePoll")]
         [HttpGet]
-        //public async Task<ActionResult<PollSummaryDTO>> GetOnePoll(Guid id)
         public async Task<ActionResult<Poll>> GetOnePoll([FromQuery]  Guid id)
         {
             Poll p = await _pollsService.GetOnePoll(id);
             
             if (p != null)
             {
-                //Debug.WriteLine("");
-                //Debug.WriteLine("");
-                //Debug.WriteLine(p.Options[0]);
-                //Debug.WriteLine("");
-                //Debug.WriteLine("");
                 return Ok(p);
             }
 
@@ -74,13 +65,9 @@ namespace LivePolls.Web.Controllers
         }
 
 
-        /// <summary>
-        /// Создать новый опрос.
-        /// </summary>
-        /// <param name="request">Модель создания опроса</param>
+
         [Route("CreatePoll")]
         [HttpPost]
-        //public async Task<ActionResult<CreatePollRequestDTO>> CreatePoll([FromBody] CreatePollRequestDTO request)
         public async Task<ActionResult<Poll>> CreatePoll([FromBody] CreatePollRequestDTO request)
         {
             if (!ModelState.IsValid)

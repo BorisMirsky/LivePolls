@@ -31,42 +31,20 @@ EndDate некорректно записывает
 Работает, но с ошибками выше
 
 
+
 "isActive": true  + логикa проверки на срок действия              Services
 
 
-CreatorId - откуда берётся?
+CreatorId - откуда брать?
 
 
 
 http://localhost:5063/swagger/index.html
 
 
+После переустановки ОС, VS и всего остального:
+GetOne - ok
+GetAll - error 500
+Create - ok
 
-
-[Route("CreateBooking")]     
-        [HttpPost]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "patient")]
-        public async Task<ActionResult> CreateBooking([FromBody] BookingRequest request)
-        {
-            await _bookingService.CreateBooking(request.SlotId, request.PatientId,
-                                                request.DoctorId, request.IsBooked);
-            return Ok();
-        }
-
-
-
-[Route("GetByPatient")]
-        [HttpGet]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "admin, doctor, patient")]
-        public async Task<ActionResult<List<BookingDTO>>> GetByPatient([FromQuery] Guid id)
-        {
-            List<BookingDTO> bookings = await _bookingService.GetByPatient(id);
-
-            if (bookings != null)
-            {
-                return Ok(bookings);
-            }
-
-            return BadRequest(new { message = "there'are not such patient" });
-        }
 
