@@ -1,6 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 
 namespace LivePolls.Domain.Modeles
@@ -27,7 +28,7 @@ namespace LivePolls.Domain.Modeles
         [Column("question")]
         public string Question { get; set; } = String.Empty;
 
-        public List<PollOption> Options { get; set; } = [];
+        public List<PollOption> Options { get; set; }  = [];
     }
 }
 

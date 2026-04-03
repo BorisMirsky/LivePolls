@@ -12,16 +12,16 @@ namespace LivePolls.DataAccess.Configuration
     {
         public void Configure(EntityTypeBuilder<PollOption> builder)
         {
+
             builder.HasKey(p => p.Id);
 
             builder.HasOne(o => o.Poll)
                 .WithMany(p => p.Options)
-                .HasForeignKey(o => o.PollId)
-                .IsRequired();
-            builder.Property(b => b.PollId)
-                .IsRequired();
-            builder.Property(p => p.Text);
-            builder.Property(p => p.Order);
+                .HasForeignKey(o => o.PollId);
+
+            builder.Property(o => o.PollId);
+            builder.Property(o => o.Text);
+            builder.Property(o => o.Order);
         }
     }
 }

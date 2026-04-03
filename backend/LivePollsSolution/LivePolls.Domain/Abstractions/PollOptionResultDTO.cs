@@ -7,7 +7,7 @@ namespace LivePolls.Domain.Abstractions
 {
     public record PollOptionResultDTO
     (
-        int OptionId,
+        Guid OptionId,
         string Text, 
         int VoteCount 
     );

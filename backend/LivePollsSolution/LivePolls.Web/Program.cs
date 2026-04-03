@@ -1,9 +1,10 @@
-using LivePolls.Web.Controllers;
+using LivePolls.Application.Services;
+using LivePolls.DataAccess;
 //using LivePolls.Web.Hubs;
 using LivePolls.DataAccess.Repo;
-using LivePolls.Application.Services;
+using LivePolls.Web.Controllers;
 using Microsoft.EntityFrameworkCore;
-using LivePolls.DataAccess;
+using System.Text.Json.Serialization;
 
 
 
@@ -18,12 +19,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 string connection = builder.Configuration.GetConnectionString("DefaultConnection")!;
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(connection));
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection));
 
 
 builder.Services.AddControllers();
+//builder.Services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
 //builder.Services.AddSignalR();
+
 builder.Services.AddScoped<IPollsService, PollsService>();
 builder.Services.AddScoped<IPollsRepo, PollsRepo>();
 

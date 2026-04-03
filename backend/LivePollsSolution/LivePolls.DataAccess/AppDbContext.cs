@@ -13,9 +13,9 @@ namespace LivePolls.DataAccess
         public AppDbContext(DbContextOptions<AppDbContext> options) 
             : base(options) { }
 
-        public DbSet<Poll> Polls { get; set; }
-        public DbSet<PollOption> PollOptions { get; set; }
-        public DbSet<User> Users { get; set; }
+        public DbSet<Poll> Polls { get; set; } = null!;
+        public DbSet<PollOption> PollOptions { get; set; } = null!;
+        //public DbSet<User> Users { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         { }

@@ -25,18 +25,17 @@ namespace LivePolls.DataAccess.Repo
 
         public async Task<List<Poll>> GetPolls()
         {
-            var entities = await _context.Polls
-               .ToListAsync();
+            var entities = await _context.Polls.ToListAsync();
             foreach (var ent in entities)
             {
                 var options = _context.PollOptions
-                .Where(o => o.PollId == ent.Id)
-                .ToList();
-                foreach (var opt in options)
-                {
-                    ent.Options.Add(opt);
-                }
-
+                                .Where(o => o.PollId == ent.Id)
+                                .ToList();
+                ent.Options = options; 
+                //foreach (var opt in options)
+                //{
+                //    ent.Options.Add(opt);
+                //}
             }
 
             if (entities.Equals(0))

@@ -1,10 +1,4 @@
 
-
-Hub лежит в том же слое что и контроллеры. И так же имеет проекцию в другие слои
-- Application & DataAccess. Можно вообще сказать что это типа как контроллер, но 
-наследуемый от другого родителя.
-
-
 todo 
 
 
@@ -19,28 +13,11 @@ todo
 
 --------------------   Гоняю Сваггера (CRUD)   --------------------
   
- GetOne
-возвращает пустой список Options   ---> MedBooking (Doctor & Slots\Bookings)
-
-   Create
-Опции сохраняются но не понимаю как     ---> MedBooking (Doctor & Slots\Bookings)
-EndDate некорректно записывает
-
-
-   GetAll
-Работает, но с ошибками выше
-
-
-
 "isActive": true  + логикa проверки на срок действия              Services
-
 
 CreatorId - откуда брать?
 
-
-
 http://localhost:5063/swagger/index.html
-
 
 После переустановки ОС, VS и всего остального:
 GetOne - ok

@@ -1,6 +1,7 @@
 ﻿using LivePolls.DataAccess;
 using LivePolls.Domain.Abstractions;
 using LivePolls.Domain.Modeles;
+
 using LivePolls.Application.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -28,25 +29,14 @@ namespace LivePolls.Web.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Poll>>> GetPolls()
         {
-            var polls = await _pollsService.GetPolls();
+            //var polls = await _pollsService.GetPolls();
+            List<Poll> polls = await _pollsService.GetPolls();
             if (polls != null)
             {
                 return Ok(polls);
             }
 
             return BadRequest(new { message = "there'are not any polls" });
-            //var polls = await _context.Polls
-            //    .Where(p => p.IsActive)
-            //    .Select(p => new PollSummaryDTO
-            //    (
-            //        p.Id,
-            //        p.Question,
-            //        p.CreatedAt,
-            //        p.Options.Count
-            //    ))
-            //    .ToListAsync();
-
-            //return Ok(polls);
         }
 
 
