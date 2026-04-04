@@ -2,7 +2,9 @@ using LivePolls.Application.Services;
 using LivePolls.DataAccess;
 //using LivePolls.Web.Hubs;
 using LivePolls.DataAccess.Repo;
+using LivePolls.Domain.Abstractions;
 using LivePolls.Web.Controllers;
+using LivePolls.Web.Hubs;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -23,8 +25,9 @@ builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connect
 
 
 builder.Services.AddControllers();
-//builder.Services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
-//builder.Services.AddSignalR();
+builder.Services.AddScoped<IVoteHubService, VoteHubService>();
+builder.Services.AddScoped<IVoteHubRepository, VoteHubRepository>();
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<IPollsService, PollsService>();
 builder.Services.AddScoped<IPollsRepo, PollsRepo>();
@@ -43,15 +46,13 @@ var app = builder.Build();
 //{
 //    options.AddDefaultPolicy(policy =>
 //    {
-//        policy.WithOrigins("http://localhost:5063")  //3000")
+//        policy.WithOrigins("http://localhost:5063")
 //            .AllowAnyHeader()
 //            .AllowAnyMethod()
 //            .AllowCredentials();
 //    });
 //});
 
-//builder.Services.AddSignalR();
-//app.MapHub<VoteHub>("/voting");
 
 if (app.Environment.IsDevelopment())
 {
@@ -59,17 +60,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseCors();
 //app.UseHttpsRedirection();
 //app.UseAuthorization();
 
 app.UseCors(x =>
 {
     x.WithHeaders().AllowAnyHeader();
-    x.WithOrigins("http://localhost:5063");   //   "h ttp://localhost:3000"
+    x.WithOrigins("http://localhost:5063");   
     x.WithMethods().AllowAnyMethod();
 });
 
+//app.UseCors();
+app.MapHub<VoteHub>("/votingHub");
 app.MapControllers();
+
 app.Run();
 

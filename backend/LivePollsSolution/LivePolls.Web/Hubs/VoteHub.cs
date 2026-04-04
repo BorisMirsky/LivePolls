@@ -1,112 +1,89 @@
-﻿
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
-using LivePolls.DataAccess;
-using LivePolls.Domain.Modeles;
+﻿using Microsoft.AspNetCore.SignalR;
 using LivePolls.Domain.Abstractions;
+using Microsoft.Extensions.Logging;
 
-
-
-public class VoteHub : Hub
+namespace LivePolls.Web.Hubs
 {
-
-    private readonly AppDbContext _context;
-
-    public VoteHub(AppDbContext context)
+    public class VoteHub : Hub
     {
-        _context = context;
-    }
+        private readonly IVoteHubService _voteHubService;
+        private readonly ILogger<VoteHub> _logger;
 
-
-    /// <summary>
-    /// Пользователь вступает в группу опроса. При вступлении отправляем текущие результаты.
-    /// </summary>
-    /// <param name="pollId">ID опроса</param>
-    /// <param name="userName">Имя пользователя (введённое на клиенте)</param>
-    public async Task JoinPollGroup(Guid pollId, string userName)
-    {
-        // Добавляем соединение в группу SignalR
-        await Groups.AddToGroupAsync(Context.ConnectionId, pollId.ToString());
-
-        // Отправляем текущие результаты опроса новому участнику
-        var results = await GetPollResults(pollId);
-        await Clients.Caller.SendAsync("PollResults", results);
-    }
-
-
-    /// <summary>
-    /// Голосование за вариант ответа.
-    /// </summary>
-    /// <param name="pollId">ID опроса</param>
-    /// <param name="optionId">ID выбранного варианта</param>
-    /// <param name="userName">Имя пользователя</param>
-    public async Task Vote(Guid pollId, Guid optionId, Guid CreatorId ) //string userName)
-    {
-        // Проверяем, существует ли опрос и вариант
-        var poll = await _context.Polls
-            .Include(p => p.Options)
-            .FirstOrDefaultAsync(p => p.Id == pollId); // && p.IsActive);
-        if (poll == null)
-            throw new HubException("Опрос не найден или уже закрыт");
-
-        var option = poll.Options.FirstOrDefault(o => o.Id == optionId);
-        if (option == null)
-            throw new HubException("Вариант ответа не найден");
-
-        // Проверяем, не голосовал ли уже пользователь в этом опросе
-        var existingVote = await _context.Polls //Votes
-            .FirstOrDefaultAsync(p => p.Id == pollId && p.CreatorId == CreatorId);
-        if (existingVote != null)
-            throw new HubException("Вы уже голосовали в этом опросе");
-
-        // Используем транзакцию для атомарного обновления счётчика и сохранения голоса
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        public VoteHub(IVoteHubService voteHubService, ILogger<VoteHub> logger)
         {
-            // Увеличиваем счётчик голосов варианта
-            //option.VoteCount++;
-            _context.PollOptions.Update(option);
+            _voteHubService = voteHubService;
+            _logger = logger;
+        }
 
-            // Сохраняем голос             ЭТО МОДЕЛЬ
-            var vote = new Vote
+        public async Task JoinPollGroup(Guid pollId, Guid userId, string userName)
+        {
+            try
             {
-                PollId = pollId,
-                OptionId = optionId,
-                //UserName = userName
-            };
-            //_context.Votes.Add(vote);
+                // Проверяем существование опроса
+                var poll = await _voteHubService.GetPollWithOptionsAsync(pollId);
 
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
+                // Добавляем в группу SignalR
+                await Groups.AddToGroupAsync(Context.ConnectionId, pollId.ToString());
+
+                // Регистрируем подключение в БД
+                await _voteHubService.RegisterUserConnectionAsync(userId, Context.ConnectionId, pollId);
+
+                // Отправляем текущие результаты
+                var results = await _voteHubService.GetPollResultsAsync(pollId);
+                await Clients.Caller.SendAsync("PollResults", results);
+
+                _logger.LogInformation("User {UserId} ({UserName}) joined poll {PollId}",
+                    userId, userName, pollId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error joining poll group");
+                throw new HubException(ex.Message);
+            }
         }
-        catch (DbUpdateException)
+
+        public async Task Vote(Guid pollId, Guid optionId, Guid userId)
         {
-            await transaction.RollbackAsync();
-            throw new HubException("Не удалось сохранить голос. Возможно, вы уже голосовали.");
+            try
+            {
+                // Обрабатываем голосование через сервис
+                await _voteHubService.ProcessVoteAsync(pollId, optionId, userId);
+
+                // Получаем обновленные результаты
+                var updatedResults = await _voteHubService.GetPollResultsAsync(pollId);
+
+                // Рассылаем всем в группе
+                await Clients.Group(pollId.ToString()).SendAsync("PollResults", updatedResults);
+
+                _logger.LogInformation("Vote processed successfully for user {UserId} in poll {PollId}",
+                    userId, pollId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing vote");
+                throw new HubException(ex.Message);
+            }
         }
 
-        // Получаем обновлённые результаты и рассылаем всем в группе
-        var updatedResults = await GetPollResults(pollId);
-        await Clients.Group(pollId.ToString()).SendAsync("PollResults", updatedResults);
-    }
+        public async Task GetCurrentResults(Guid pollId)
+        {
+            var results = await _voteHubService.GetPollResultsAsync(pollId);
+            await Clients.Caller.SendAsync("PollResults", results);
+        }
 
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            try
+            {
+                await _voteHubService.UnregisterUserConnectionAsync(Context.ConnectionId);
+                _logger.LogInformation("Connection {ConnectionId} disconnected", Context.ConnectionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error on disconnect");
+            }
 
-    /// <summary>
-    /// Вспомогательный метод: получает текущие результаты опроса (список вариантов с количеством голосов).
-    /// </summary>
-    private async Task<List<PollOptionResultDTO>> GetPollResults(Guid pollId)
-    {
-        var options = await _context.PollOptions
-            .Where(o => o.Id == pollId)
-            .Select(o => new PollOptionResultDTO
-            (
-                o.Id,
-                o.Text,
-                o.Order   //VoteCount
-            ))
-            .ToListAsync();
-
-        return options;
+            await base.OnDisconnectedAsync(exception);
+        }
     }
 }
-

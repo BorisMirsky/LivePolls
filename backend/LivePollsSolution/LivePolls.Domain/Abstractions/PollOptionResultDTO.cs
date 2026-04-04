@@ -9,6 +9,7 @@ namespace LivePolls.Domain.Abstractions
     (
         Guid OptionId,
         string Text, 
-        int VoteCount 
+        int VoteCount,
+        int Percentage
     );
 }

@@ -8,7 +8,8 @@ todo
 - responces, requestes (папка Contracts, уровень Web) 
   Контроллер принимает ([FromBody] Request)
              возвращает Response
-  Это одно и то же.  Хранить в слое Web. 
+  Это одно и то же.  Хранить в слое Domain. 
+
 
 
 --------------------   Гоняю Сваггера (CRUD)   --------------------
@@ -19,9 +20,578 @@ CreatorId - откуда брать?
 
 http://localhost:5063/swagger/index.html
 
-После переустановки ОС, VS и всего остального:
+
 GetOne - ok
-GetAll - error 500
+GetAll - error ?!
 Create - ok
+
+
+
+1 GetAll - error ?!
+2 Вспомнить и заново понять signalR. 
+3 Выбрать способ для тестирования и запустить его.
+4 Cursor AI
+
+
+
+
+---------------------------------------------------------------
+
+Очень хорошо, ты большой молодец. 
+Давай продолжим.
+Итак, у нас есть приложение для голосования (опрос) на SignalR.
+
+У него должна быть функциональность, реализованная в контроллере:
+1. Пользователь может увидеть все имеющиеся опросы.
+2. Пользователь может выбрать один опрос и посмотреть его результаты, а также проголосовать в этом опросе. Результат обновится сразу.
+3. Пользователь может создать новый опрос.
+
+Контроллер вызывает service (уровень Application), а тот вызывает репозиторий (у меня этот уровень называется DataAccess). 
+
+Кроме того, есть хаб (hub), у которого есть функциональность:
+1. Пользователь вступает в группу опроса (у каждого опроса своя группа)
+2. Пользователь голосует за вариант ответа
+3. Пользователь получает текущие результаты опроса (т.е. варианты ответа и количество голосов, поданных за него)
+
+Пока что этого достаточно, потом немного добавим функциональность и бизнес-логику.
+
+
+==================== Ниже будет код нескольких основных файлов проекта и схема таблиц базы данных ====================
+
+
+
+
+========================= hub ============================
+
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using LivePolls.DataAccess;
+using LivePolls.Domain.Modeles;
+using LivePolls.Domain.Abstractions;
+
+
+
+public class VoteHub : Hub
+{
+
+    private readonly AppDbContext _context;
+
+    public VoteHub(AppDbContext context)
+    {
+        _context = context;
+    }
+
+
+    /// <summary>
+    /// Пользователь вступает в группу опроса. При вступлении отправляем текущие результаты.
+    /// </summary>
+    /// <param name="pollId">ID опроса</param>
+    /// <param name="userName">Имя пользователя (введённое на клиенте)</param>
+    public async Task JoinPollGroup(Guid pollId, string userName)
+    {
+        // Добавляем соединение в группу SignalR
+        await Groups.AddToGroupAsync(Context.ConnectionId, pollId.ToString());
+
+        // Отправляем текущие результаты опроса новому участнику
+        var results = await GetPollResults(pollId);
+        await Clients.Caller.SendAsync("PollResults", results);
+    }
+
+
+    /// <summary>
+    /// Голосование за вариант ответа.
+    /// </summary>
+    /// <param name="pollId">ID опроса</param>
+    /// <param name="optionId">ID выбранного варианта</param>
+    /// <param name="userName">Имя пользователя</param>
+    public async Task Vote(Guid pollId, Guid optionId, Guid CreatorId ) //string userName)
+    {
+        // Проверяем, существует ли опрос и вариант
+        var poll = await _context.Polls
+            .Include(p => p.Options)
+            .FirstOrDefaultAsync(p => p.Id == pollId); // && p.IsActive);
+        if (poll == null)
+            throw new HubException("Опрос не найден или уже закрыт");
+
+        var option = poll.Options.FirstOrDefault(o => o.Id == optionId);
+        if (option == null)
+            throw new HubException("Вариант ответа не найден");
+
+        // Проверяем, не голосовал ли уже пользователь в этом опросе
+        var existingVote = await _context.Polls //Votes
+            .FirstOrDefaultAsync(p => p.Id == pollId && p.CreatorId == CreatorId);
+        if (existingVote != null)
+            throw new HubException("Вы уже голосовали в этом опросе");
+
+        // Используем транзакцию для атомарного обновления счётчика и сохранения голоса
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            // Увеличиваем счётчик голосов варианта
+            //option.VoteCount++;
+            _context.PollOptions.Update(option);
+
+            // Сохраняем голос             ЭТО МОДЕЛЬ
+            var vote = new Vote
+            {
+                PollId = pollId,
+                OptionId = optionId,
+                //UserName = userName
+            };
+            //_context.Votes.Add(vote);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch (DbUpdateException)
+        {
+            await transaction.RollbackAsync();
+            throw new HubException("Не удалось сохранить голос. Возможно, вы уже голосовали.");
+        }
+
+        // Получаем обновлённые результаты и рассылаем всем в группе
+        var updatedResults = await GetPollResults(pollId);
+        await Clients.Group(pollId.ToString()).SendAsync("PollResults", updatedResults);
+    }
+
+
+    /// <summary>
+    /// Вспомогательный метод: получает текущие результаты опроса (список вариантов с количеством голосов).
+    /// </summary>
+    private async Task<List<PollOptionResultDTO>> GetPollResults(Guid pollId)
+    {
+        var options = await _context.PollOptions
+            .Where(o => o.Id == pollId)
+            .Select(o => new PollOptionResultDTO
+            (
+                o.Id,
+                o.Text,
+                o.Order   //VoteCount
+            ))
+            .ToListAsync();
+
+        return options;
+    }
+}
+
+
+========================= Controller ============================
+
+using LivePolls.DataAccess;
+using LivePolls.Domain.Abstractions;
+using LivePolls.Domain.Modeles;
+
+using LivePolls.Application.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
+
+
+
+
+namespace LivePolls.Web.Controllers
+{
+    [Route("[controller]")]
+    [ApiController]
+    public class PollsController : ControllerBase
+    {
+        private readonly IPollsService _pollsService;
+
+        public PollsController(IPollsService pollsService)
+        {
+            _pollsService = pollsService;
+        }
+
+
+        [Route("GetPolls")]
+        [HttpGet]
+        public async Task<ActionResult<List<Poll>>> GetPolls()
+        {
+            //var polls = await _pollsService.GetPolls();
+            List<Poll> polls = await _pollsService.GetPolls();
+            if (polls != null)
+            {
+                return Ok(polls);
+            }
+
+            return BadRequest(new { message = "there'are not any polls" });
+        }
+
+
+        [Route("GetOnePoll")]
+        [HttpGet]
+        public async Task<ActionResult<Poll>> GetOnePoll([FromQuery]  Guid id)
+        {
+            Poll p = await _pollsService.GetOnePoll(id);
+            
+            if (p != null)
+            {
+                return Ok(p);
+            }
+
+            return BadRequest(new { message = "Poll is not recognized" });
+        }
+
+
+
+        [Route("CreatePoll")]
+        [HttpPost]
+        public async Task<ActionResult<Poll>> CreatePoll([FromBody] CreatePollRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            await _pollsService.CreatePoll(request); //.CreatorId, request.Question);
+            return Ok();
+
+
+            //// Создаём опрос
+            //var poll = new Poll
+            //{
+            //    Question = request.Question,
+            //    CreatedAt = DateTime.UtcNow,
+            //    IsActive = true
+            //};
+
+            //// Добавляем варианты ответов
+            //foreach (var optionText in request.Options)
+            //{
+            //    poll.Options.Add(new PollOption { Text = optionText });
+            //}
+
+            //_context.Polls.Add(poll);
+            //await _context.SaveChangesAsync();
+
+            //// Возвращаем ID созданного опроса
+            //return Ok(new PollCreatedResponseDTO (poll.Id ));
+            //return Ok();
+        }
+    }
+}
+
+
+========================= Program ============================
+
+using LivePolls.Application.Services;
+using LivePolls.DataAccess;
+//using LivePolls.Web.Hubs;
+using LivePolls.DataAccess.Repo;
+using LivePolls.Web.Controllers;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+
+
+
+var builder = WebApplication.CreateBuilder(args);
+
+//builder.Services.AddStackExchangeRedisCache(options =>
+//{
+//    var connection = builder.Configuration.GetConnectionString("Redis");
+//    options.Configuration = connection;
+//});
+
+
+
+string connection = builder.Configuration.GetConnectionString("DefaultConnection")!;
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection));
+
+
+builder.Services.AddControllers();
+//builder.Services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+//builder.Services.AddSignalR();
+
+builder.Services.AddScoped<IPollsService, PollsService>();
+builder.Services.AddScoped<IPollsRepo, PollsRepo>();
+
+
+builder.Services.AddHealthChecks();
+builder.Services.AddSwaggerGen();
+//builder.Services.AddAuthorization();
+
+
+
+var app = builder.Build();
+
+
+//builder.Services.AddCors(options =>
+//{
+//    options.AddDefaultPolicy(policy =>
+//    {
+//        policy.WithOrigins("http://localhost:5063")  //3000")
+//            .AllowAnyHeader()
+//            .AllowAnyMethod()
+//            .AllowCredentials();
+//    });
+//});
+
+//builder.Services.AddSignalR();
+//app.MapHub<VoteHub>("/voting");
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+//app.UseCors();
+//app.UseHttpsRedirection();
+//app.UseAuthorization();
+
+app.UseCors(x =>
+{
+    x.WithHeaders().AllowAnyHeader();
+    x.WithOrigins("http://localhost:5063");   //   "h ttp://localhost:3000"
+    x.WithMethods().AllowAnyMethod();
+});
+
+app.MapControllers();
+app.Run();
+
+
+========================= Poll ============================
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+
+
+namespace LivePolls.Domain.Modeles
+{
+    [Table("polls")]
+    public class Poll
+    {
+        [Key]
+        [Column("id")]
+        public Guid Id { get; set; }
+
+        [Column("creatorid")]
+        public Guid CreatorId { get; set; }
+
+        [Column("createdat")]
+        public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
+
+        [Column("enddate")]
+        public DateTime? EndDate { get; set; } //= DateTime.UtcNow;
+
+        [Column("isactive")]
+        public Boolean? IsActive { get; set; } = false;
+
+        [Column("question")]
+        public string Question { get; set; } = String.Empty;
+
+        public List<PollOption> Options { get; set; }  = [];
+    }
+}
+
+
+========================= PollOption ============================
+
+
+
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
+
+namespace LivePolls.Domain.Modeles
+{
+    [Table("polloptions")]
+    public class PollOption
+    {
+        [Key]
+        [Column("id")]
+        public Guid Id { get; set; }
+
+        [Column("pollid")]
+        public Guid PollId { get; set; }
+
+        [Column("text")]
+        public string Text { get; set; } = String.Empty;
+
+        [Column("order")]
+        public int Order { get; set; } = 0;
+
+        public Poll? Poll { get; set; }
+    }
+}
+
+
+========================= User ============================
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+
+
+namespace LivePolls.Domain.Modeles
+{
+    public class User
+    {
+        public Guid Id { get; set; }   //Guid 
+        public string Name { get; set; } = String.Empty;
+        public string? Login { get; set; } = String.Empty;
+        public string? Password { get; set; } = String.Empty;
+
+    }
+}
+
+
+========================= Vote ============================
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LivePolls.Domain.Modeles
+{
+    public class Vote
+    {
+        public Guid Id { get; set; }
+        public Guid PollId { get; set; }
+        public Guid OptionId { get; set; }
+        ////public string UserName { get; set; } = String.Empty;
+        //public DateTime VotedAt { get; set; } = DateTime.UtcNow;
+
+        //public Poll? Poll { get; set; }
+        //public PollOption? Option { get; set; }
+    }
+}
+
+
+========================= UserConnection ============================
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LivePolls.Domain.Modeles
+{
+    public class UserConnection
+    {
+    }
+}
+
+
+========================= DTO ============================
+
+namespace LivePolls.Domain.Abstractions
+{
+    public record CreatePollRequestDTO
+    (
+        string Question,
+        List<string> Options
+    );
+}
+
+
+
+namespace LivePolls.Domain.Abstractions
+{
+    public record PollCreatedResponseDTO
+    (
+        int PollId
+    );
+}
+
+
+/// <summary>
+/// DTO для передачи результатов опроса клиенту.
+/// </summary>
+namespace LivePolls.Domain.Abstractions
+{
+    public record PollOptionResultDTO
+    (
+        Guid OptionId,
+        string Text, 
+        int VoteCount 
+    );
+}
+
+
+
+
+namespace LivePolls.Domain.Abstractions
+{
+    public record PollSummaryDTO
+    (
+        int Id,
+        string Question,
+        DateTime CreatedAt
+     );
+}
+
+============================== таблицы базы данных ============================
+
+
+CREATE TABLE "PollOptions" (
+	"Id"	TEXT NOT NULL UNIQUE,
+	"PollId"	TEXT NOT NULL,
+	"Text"	TEXT NOT NULL,
+	"Order"	INTEGER,
+	PRIMARY KEY("Id"),
+	FOREIGN KEY("PollId") REFERENCES "Polls"("Id")
+);
+
+
+CREATE TABLE "Polls" (
+	"Id"	TEXT NOT NULL UNIQUE,
+	"CreatorId"	TEXT NOT NULL,
+	"CreatedAt"	TEXT NOT NULL,
+	"IsActive"	INTEGER NOT NULL,
+	"Question"	TEXT NOT NULL,
+	"EndDate"	TEXT,
+	PRIMARY KEY("Id")
+);
+
+
+
+CREATE TABLE "Users" (
+	"Id"	TEXT NOT NULL UNIQUE,
+	"Name"	TEXT NOT NULL,
+	"Login"	TEXT,
+	"Password"	TEXT,
+	PRIMARY KEY("Id")
+);
+
+========================================================================================================================
+
+
+
+Поэтому вот тебе задание из трёх частей:
+
+1
+Надо сделать часть проекта для hub:
+- перепиши соответствующие модели и DTO (только те, которые работают с hub)
+- напиши интерфейс для сервиса хаба
+- напиши сервис хаба
+- напиши интерфейс для репозитория хаба
+- напиши репозиторий хаба
+
+
+2
+Видимо, будет нужна ещё одна таблица Vote в нашу базу данных SQLite.
+Напиши скрипт создания (как я написал для других таблиц). 
+
+
+3
+Если тебе кажется, что решения, связанные с Controller (архитектура, методы, модели, DTO), выглядят неудачно то скажи что об этом, но не исправляй.
+Всё что касается Controller (его модели, DTO, сервис, репозиторий) трогать не надо, только посмотри и скажи своё мнение.
+
+
+
+
+
+
+
+
+
+
 
 
