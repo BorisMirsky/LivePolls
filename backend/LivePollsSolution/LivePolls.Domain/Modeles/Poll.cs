@@ -28,7 +28,7 @@ namespace LivePolls.Domain.Modeles
         [Column("question")]
         public string Question { get; set; } = String.Empty;
 
-        public List<PollOption> Options { get; set; }  = [];
+        public List<PollOption> Options { get; set; } = [];
     }
 }
 

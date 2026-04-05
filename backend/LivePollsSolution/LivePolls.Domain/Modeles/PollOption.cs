@@ -21,13 +21,10 @@ namespace LivePolls.Domain.Modeles
 
         [Column("order")]
         public int Order { get; set; } = 0;
-        
-        //[Column("votecount")]
-        //public int VoteCount { get; set; } = 0;  // Добавляем поле для голосов
-
-        public Poll? Poll { get; set; }
 
         [JsonIgnore]
+        public Poll? Poll { get; set; }
+
         public List<Vote>? Votes { get; set; }
     }
 }

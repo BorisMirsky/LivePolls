@@ -21,16 +21,14 @@ CreatorId - откуда брать?
 http://localhost:5063/swagger/index.html
 
 
-GetOne - ok
-GetAll - error ?!
-Create - ok
 
-
-
-1 GetAll - error ?!
+1 GetAll - чтобы возвращало корректно:
+          пришлось добавить [JsonIgnore] в модель PollOption для public Poll? Poll { get; set; }
 2 Вспомнить и заново понять signalR. 
-3 как тестировать сигнал
+3 посмотреть на метаните как тестировать сигнал
 4 Cursor AI
+
+
 
 
 

@@ -17,8 +17,45 @@ namespace LivePolls.Application.Services
 
         public async Task<List<Poll>> GetPolls()
         {
-               return await _pollsRepo.GetPolls();
+            return await _pollsRepo.GetPolls();
+            //var polls = await _pollsRepo.GetPolls();
+            //return polls.Select(p => new PollResponseDTO
+            //(
+            //    p.Id,
+            //    p.CreatorId,
+            //    p.CreatedAt,
+            //    p.EndDate,
+            //    p.IsActive,
+            //    p.Question,
+            //    p.Options.Select(o => new PollOptionResponseDTO
+            //    (
+            //        o.Id,
+            //        o.Text,
+            //        o.Order
+            //    )).ToList()
+            //)).ToList();
         }
+
+        //public async Task<List<PollResponseDTO>> GetPolls()  // ← измените тип возврата
+        //{
+        //    var polls = await _pollsRepo.GetPolls();
+        //    return polls.Select(p => new PollResponseDTO
+        //    (
+        //        p.Id,
+        //        p.CreatorId,
+        //        p.CreatedAt,
+        //        p.EndDate,
+        //        p.IsActive,
+        //        p.Question,
+        //        p.Options.Select(o => new PollOptionResponseDTO
+        //        (
+        //            o.Id,
+        //            o.Text,
+        //            o.Order
+        //        )).ToList()
+        //    )).ToList();
+        //}
+
 
         public async Task<Poll> GetOnePoll(Guid id)
         {
