@@ -1,33 +1,19 @@
 
-todo 
-
-
-2) Сделать понятные:
-- DTO (папка Abstractions, уровень DataAccess)
-
-- responces, requestes (папка Contracts, уровень Web) 
-  Контроллер принимает ([FromBody] Request)
-             возвращает Response
-  Это одно и то же.  Хранить в слое Domain. 
+http://localhost:5063/swagger/index.html        адрес сваггера
 
 
 
---------------------   Гоняю Сваггера (CRUD)   --------------------
-  
+
+todo: 
+
+1 js клиента прикрутить для тестирования
+2 Cursor AI
+
+
+
+Вопросики:
 "isActive": true  + логикa проверки на срок действия              Services
-
 CreatorId - откуда брать?
-
-http://localhost:5063/swagger/index.html
-
-
-
-1 GetAll - чтобы возвращало корректно:
-          пришлось добавить [JsonIgnore] в модель PollOption для public Poll? Poll { get; set; }
-2 Вспомнить и заново понять signalR. 
-3 посмотреть на метаните как тестировать сигнал
-4 Cursor AI
-
 
 
 

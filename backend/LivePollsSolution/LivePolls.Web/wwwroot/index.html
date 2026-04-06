@@ -1,0 +1,42 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Тестирование SignalR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+</head>
+<body>
+    <h2>Ручное тестирование SignalR</h2>
+    <div>
+        <input type="text" id="message" placeholder="Введите сообщение" />
+        <button onclick="sendMessage()">Отправить</button>
+    </div>
+    <ul id="messagesList"></ul>
+
+    <script>
+        // 1. Создаём подключение (замените URL на адрес вашего хаба)
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/VoteHub") 
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        // 2. Определяем метод, который будет принимать сообщения от сервера
+        connection.on("ReceiveMessage", (user, message) => {
+            const li = document.createElement("li");
+            li.textContent = `${user}: ${message}`;
+            document.getElementById("messagesList").appendChild(li);
+        });
+
+        // 3. Запускаем соединение
+        connection.start().then(() => {
+            console.log("Подключение успешно!");
+        }).catch(err => console.error(err));
+
+        // 4. Функция отправки сообщения (вызывает метод SendMessage на сервере)
+        function sendMessage() {
+            const message = document.getElementById("message").value;
+            connection.invoke("SendMessage", "Тестовый пользователь", message)
+                .catch(err => console.error(err));
+        }
+    </script>
+</body>
+</html>
