@@ -27,9 +27,7 @@
         });
 
         // 3. Запускаем соединение
-        connection.start().then(() => {
-            console.log("Подключение успешно!");
-        }).catch(err => console.error(err));
+        connection.start().then(() => {console.log("Подключение успешно!");}).catch(err => console.error(err));
 
         // 4. Функция отправки сообщения (вызывает метод SendMessage на сервере)
         function sendMessage() {

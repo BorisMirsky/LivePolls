@@ -16,5 +16,22 @@ todo:
 CreatorId - откуда брать?
 
 
+------------------------------------------------------
+
+JoinPollGroup
+- Юзер заносится в БД и в группу
+-
 
 
+
+Vote
+
+
+GetCurrentResults
+
+
+---------------------------------------------------------
+
+На строке:  connection = new signalR.HubConnectionBuilder()
+
+ошибка:  ncaught (in promise) ReferenceError: signalR is not defined at HTMLButtonElement.connectToSignalR 

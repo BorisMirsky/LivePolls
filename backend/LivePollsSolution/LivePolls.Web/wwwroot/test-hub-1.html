@@ -1,0 +1,512 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LivePolls - Тестирование SignalR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signr/8.0.7/signalr.min.js"></script>   -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .left-panel {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .right-panel {
+            flex: 2;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .logs {
+            background: #f0f0f0;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .info {
+            color: blue;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+            button:disabled {
+                background-color: #ccc;
+                cursor: not-allowed;
+            }
+
+            button:hover:not(:disabled) {
+                background-color: #0056b3;
+            }
+
+        input, select, textarea {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        .poll-item {
+            padding: 10px;
+            margin: 10px 0;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .poll-item:hover {
+                background: #e9e9e9;
+            }
+
+        .option-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+        }
+
+        .vote-button {
+            background-color: #28a745;
+            margin-left: 10px;
+        }
+
+        .create-poll-form {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+
+        .result-stats {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        hr {
+            margin: 20px 0;
+        }
+
+        h3 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>LivePolls - Тестирование SignalR</h1>
+
+    <div class="container">
+        <div class="left-panel">
+            <h3>Пользователь</h3>
+            <div>
+                <input type="text" id="userName" placeholder="Введите имя" />
+                <button id="connectBtn" disabled>Подключиться</button>
+                <button id="disconnectBtn" disabled>Отключиться</button>
+            </div>
+
+            <div id="connectionStatus" style="margin-top: 10px; font-weight: bold;"></div>
+
+            <hr />
+
+            <h3>Опросы</h3>
+            <div id="pollsList"></div>
+
+            <hr />
+
+            <h3>Создать новый опрос</h3>
+            <div class="create-poll-form">
+                <div>
+                    <input type="text" id="questionInput" placeholder="Вопрос" style="width: 90%;" />
+                </div>
+                <div>
+                    <textarea id="optionsInput" placeholder="Варианты ответов (каждый с новой строки)" rows="4" style="width: 90%;"></textarea>
+                </div>
+                <button id="createPollBtn" disabled>Создать опрос</button>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <h3>Текущий опрос</h3>
+            <div id="currentPollView">
+                <p style="color: #999;">Выберите опрос из списка слева</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="logs">
+        <h3>Лог событий</h3>
+        <div id="logs"></div>
+    </div>
+
+    <script>
+        // Глобальные переменные
+        let connection = null;
+        let isConnected = false;
+        let currentUser = {
+            id: null,
+            name: null
+        };
+        let currentPoll = null;
+        let hasVoted = false;
+
+        // Вспомогательная функция для логов
+        function addLog(message, type = 'info') {
+            const logsDiv = document.getElementById('logs');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            logEntry.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+
+        // Генерация временного ID пользователя (в реальном приложении должен быть бэкенд)
+        function generateUserId() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        // Обновление статуса подключения
+        function updateConnectionStatus() {
+            const statusDiv = document.getElementById('connectionStatus');
+            const connectBtn = document.getElementById('connectBtn');
+            const disconnectBtn = document.getElementById('disconnectBtn');
+            const createPollBtn = document.getElementById('createPollBtn');
+
+            if (isConnected && currentUser.name) {
+                statusDiv.innerHTML = `<span style="color: green;">✓ Подключен как: ${currentUser.name} (ID: ${currentUser.id})</span>`;
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                createPollBtn.disabled = false;
+                loadPolls();
+            } else {
+                statusDiv.innerHTML = '<span style="color: red;">✗ Не подключен</span>';
+                connectBtn.disabled = !currentUser.name;
+                disconnectBtn.disabled = true;
+                createPollBtn.disabled = true;
+            }
+        }
+
+        // Загрузка списка опросов
+        async function loadPolls() {
+            try {
+                addLog('Загрузка списка опросов...', 'info');
+                const response = await fetch('/Polls/GetPolls');
+                if (response.ok) {
+                    const polls = await response.json();
+                    displayPolls(polls);
+                    addLog(`Загружено ${polls.length} опросов`, 'success');
+                } else {
+                    addLog('Ошибка загрузки опросов', 'error');
+                }
+            } catch (error) {
+                addLog(`Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Отображение списка опросов
+        function displayPolls(polls) {
+            const pollsDiv = document.getElementById('pollsList');
+            if (!polls || polls.length === 0) {
+                pollsDiv.innerHTML = '<p style="color: #999;">Нет доступных опросов</p>';
+                return;
+            }
+
+            pollsDiv.innerHTML = '';
+            polls.forEach(poll => {
+                const pollElement = document.createElement('div');
+                pollElement.className = 'poll-item';
+                pollElement.innerHTML = `
+                    <strong>${poll.question}</strong><br>
+                    <small>ID: ${poll.id}</small>
+                `;
+                pollElement.onclick = () => loadPollDetails(poll.id);
+                pollsDiv.appendChild(pollElement);
+            });
+        }
+
+        // Загрузка деталей опроса
+        async function loadPollDetails(pollId) {
+            try {
+                addLog(`Загрузка опроса ${pollId}...`, 'info');
+                const response = await fetch(`/Polls/GetOnePoll?id=${pollId}`);
+                if (response.ok) {
+                    currentPoll = await response.json();
+                    displayCurrentPoll();
+                    addLog(`Опрос "${currentPoll.question}" загружен`, 'success');
+
+                    // Проверяем, голосовал ли пользователь в этом опросе
+                    checkIfUserVoted();
+                } else {
+                    addLog('Ошибка загрузки деталей опроса', 'error');
+                }
+            } catch (error) {
+                addLog(`Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Проверка, голосовал ли пользователь
+        async function checkIfUserVoted() {
+            // Здесь должна быть логика проверки через бэкенд
+            // Пока просто сбрасываем флаг
+            hasVoted = false;
+        }
+
+        // Отображение текущего опроса
+        function displayCurrentPoll() {
+            const viewDiv = document.getElementById('currentPollView');
+            if (!currentPoll) {
+                viewDiv.innerHTML = '<p style="color: #999;">Выберите опрос из списка слева</p>';
+                return;
+            }
+
+            let optionsHtml = '';
+            currentPoll.options.forEach(option => {
+                optionsHtml += `
+                    <div class="option-item">
+                        <strong>${option.text}</strong>
+                        <button class="vote-button" onclick="voteForOption('${option.id}')" ${!isConnected || hasVoted ? 'disabled' : ''}>
+                            ${hasVoted ? 'Уже голосовали' : 'Голосовать'}
+                        </button>
+                        ${option.order !== undefined ? `<div class="result-stats">Голосов: ${option.order}</div>` : ''}
+                    </div>
+                `;
+            });
+
+            viewDiv.innerHTML = `
+                <h3>${currentPoll.question}</h3>
+                <div>
+                    <button onclick="joinPollGroup()" ${!isConnected ? 'disabled' : ''}>
+                        ${hasVoted ? 'В группе' : 'Войти в группу опроса'}
+                    </button>
+                    <button onclick="getCurrentResults()" ${!isConnected ? 'disabled' : ''}>
+                        Получить результаты
+                    </button>
+                </div>
+                <div id="pollOptions">
+                    ${optionsHtml}
+                </div>
+            `;
+        }
+
+        // Вход в группу опроса
+        async function joinPollGroup() {
+            if (!isConnected || !currentPoll) {
+                addLog('Необходимо подключиться и выбрать опрос', 'error');
+                return;
+            }
+
+            try {
+                addLog(`Вход в группу опроса ${currentPoll.id}...`, 'info');
+                await connection.invoke("JoinPollGroup", currentPoll.id, currentUser.id, currentUser.name);
+                addLog(`Успешно вошли в группу опроса "${currentPoll.question}"`, 'success');
+            } catch (error) {
+                addLog(`Ошибка входа в группу: ${error.message}`, 'error');
+            }
+        }
+
+        // Голосование за вариант
+        async function voteForOption(optionId) {
+            if (!isConnected || !currentPoll || hasVoted) {
+                addLog('Невозможно проголосовать: проверьте подключение и выберите опрос', 'error');
+                return;
+            }
+
+            try {
+                addLog(`Голосование за вариант ${optionId}...`, 'info');
+                await connection.invoke("Vote", currentPoll.id, optionId, currentUser.id);
+                addLog('Голос успешно учтён', 'success');
+                hasVoted = true;
+                displayCurrentPoll();
+            } catch (error) {
+                addLog(`Ошибка голосования: ${error.message}`, 'error');
+            }
+        }
+
+        // Получение текущих результатов
+        async function getCurrentResults() {
+            if (!isConnected || !currentPoll) {
+                addLog('Необходимо подключиться и выбрать опрос', 'error');
+                return;
+            }
+
+            try {
+                addLog('Запрос текущих результатов...', 'info');
+                await connection.invoke("GetCurrentResults", currentPoll.id);
+            } catch (error) {
+                addLog(`Ошибка получения результатов: ${error.message}`, 'error');
+            }
+        }
+
+        // Создание нового опроса
+        async function createPoll() {
+            const question = document.getElementById('questionInput').value.trim();
+            const optionsText = document.getElementById('optionsInput').value.trim();
+
+            if (!question || !optionsText) {
+                addLog('Заполните вопрос и варианты ответов', 'error');
+                return;
+            }
+
+            const options = optionsText.split('\n').filter(opt => opt.trim().length > 0);
+            if (options.length < 2) {
+                addLog('Добавьте минимум 2 варианта ответа', 'error');
+                return;
+            }
+
+            try {
+                addLog('Создание нового опроса...', 'info');
+                const response = await fetch('/Polls/CreatePoll', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        creatorId: currentUser.id,
+                        question: question,
+                        options: options
+                    })
+                });
+
+                if (response.ok) {
+                    addLog('Опрос успешно создан', 'success');
+                    document.getElementById('questionInput').value = '';
+                    document.getElementById('optionsInput').value = '';
+                    loadPolls();
+                } else {
+                    addLog('Ошибка создания опроса', 'error');
+                }
+            } catch (error) {
+                addLog(`Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        // Подключение к SignalR
+        async function connectToSignalR() {
+            const userName = document.getElementById('userName').value.trim();
+            if (!userName) {
+                addLog('Введите имя пользователя', 'error');
+                return;
+            }
+
+            currentUser.name = userName;
+            currentUser.id = generateUserId();
+
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/VoteHub")
+                .configureLogging(signalR.LogLevel.Information)
+                .build();
+
+            // Обработчики сообщений от хаба
+            connection.on("PollResults", (results) => {
+                addLog('Получены результаты опроса', 'info');
+                if (currentPoll && results) {
+                    // Обновляем результаты в текущем опросе
+                    if (results.options) {
+                        currentPoll.options = results.options;
+                        displayCurrentPoll();
+                        addLog('Результаты обновлены', 'success');
+                    }
+                }
+            });
+
+            connection.onclose(() => {
+                isConnected = false;
+                updateConnectionStatus();
+                addLog('Соединение разорвано', 'error');
+            });
+
+            try {
+                console.log("___connectToSignalR___");
+                await connection.start();
+                isConnected = true;
+                updateConnectionStatus();
+                addLog(`Подключено к SignalR как ${currentUser.name} (${currentUser.id})`, 'success');
+            } catch (error) {
+                addLog(`Ошибка подключения: ${error.message}`, 'error');
+                isConnected = false;
+                updateConnectionStatus();
+            }
+        }
+
+        // Отключение от SignalR
+        async function disconnectFromSignalR() {
+            if (connection) {
+                try {
+                    await connection.stop();
+                    isConnected = false;
+                    updateConnectionStatus();
+                    addLog('Отключено от SignalR', 'info');
+                    currentUser = { id: null, name: null };
+                    currentPoll = null;
+                    hasVoted = false;
+                    displayCurrentPoll();
+                } catch (error) {
+                    addLog(`Ошибка отключения: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Обработчики событий UI
+        document.getElementById('userName').addEventListener('input', (e) => {
+            const connectBtn = document.getElementById('connectBtn');
+            connectBtn.disabled = !e.target.value.trim();
+        });
+
+        document.getElementById('connectBtn').addEventListener('click', connectToSignalR);
+        document.getElementById('disconnectBtn').addEventListener('click', disconnectFromSignalR);
+        document.getElementById('createPollBtn').addEventListener('click', createPoll);
+
+        // Инициализация
+        updateConnectionStatus();
+        addLog('Страница загружена. Введите имя и подключитесь к SignalR', 'info');
+    </script>
+</body>
+</html>

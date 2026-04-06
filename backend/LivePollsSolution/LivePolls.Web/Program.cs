@@ -13,13 +13,6 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddStackExchangeRedisCache(options =>
-//{
-//    var connection = builder.Configuration.GetConnectionString("Redis");
-//    options.Configuration = connection;
-//});
-
-
 
 string connection = builder.Configuration.GetConnectionString("DefaultConnection")!;
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connection));
@@ -42,18 +35,6 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 
-//builder.Services.AddCors(options =>
-//{
-//    options.AddDefaultPolicy(policy =>
-//    {
-//        policy.WithOrigins("http://localhost:5063")
-//            .AllowAnyHeader()
-//            .AllowAnyMethod()
-//            .AllowCredentials();
-//    });
-//});
-
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -61,19 +42,19 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseDefaultFiles();
-//app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.ContentRootPath, "TestPages")),
-    RequestPath = "/tests"
-});
+app.UseStaticFiles();
+//app.UseStaticFiles(new StaticFileOptions
+//{
+//    FileProvider = new PhysicalFileProvider(
+//        Path.Combine(builder.Environment.ContentRootPath, "TestPages")),
+//    RequestPath = "/tests"
+//});
 
 //app.UseHttpsRedirection();
 //app.UseAuthorization();
 
 
-// for swagger
+
 app.UseCors(x =>
 {
     x.WithHeaders().AllowAnyHeader();

@@ -260,7 +260,7 @@
             try {
                 // Создаем подключение (URL должен соответствовать вашему серверу)
                 connection = new signalR.HubConnectionBuilder()
-                    .withUrl("http://localhost:5063/votingHub")  // Измените порт при необходимости
+                    .withUrl("http://localhost:5063/voteHub")  // Измените порт при необходимости
                     .withAutomaticReconnect()
                     .build();
 
@@ -283,8 +283,11 @@
                 });
 
                 // Запускаем подключение
-                await connection.start();
+                await connection.start().then(() => { console.log("Подключение успешно!"); })
                 addLog(`✅ Подключено к хабу! ConnectionId: ${connection.connectionId}`, 'success');
+                //connection.start().then(() => { console.log("Подключение успешно!"); }).catch(err => console.error(err));
+
+
 
                 // Сохраняем userId и userName в connection для использования в методах
                 connection.invoke("SetUserInfo", userId, userName).catch(err => {
@@ -341,6 +344,7 @@
             try {
                 currentPollId = pollId;
                 await connection.invoke("JoinPollGroup", pollId, userId, userName);
+                //await connection.invoke("JoinPollGroup", '398BB55F-73C6-45D3-B12D-13A5CBDF19C1','398BB55F-73C6-45D3-B12D-13A5CBDF19C7', '___username___');
                 addLog(`✅ Вступили в группу опроса ${pollId}`, 'success');
             } catch (error) {
                 addLog(`❌ Ошибка вступления в опрос: ${error}`, 'error');
