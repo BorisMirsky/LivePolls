@@ -194,6 +194,7 @@
         };
         let currentPoll = null;
         let hasVoted = false;
+        let isInGroup = false;
 
         // Вспомогательная функция для логов
         function addLog(message, type = 'info') {
@@ -274,15 +275,18 @@
 
         // Загрузка деталей опроса
         async function loadPollDetails(pollId) {
+            isInGroup = false;
+
             try {
                 addLog(`Загрузка опроса ${pollId}...`, 'info');
                 const response = await fetch(`/Polls/GetOnePoll?id=${pollId}`);
                 if (response.ok) {
                     currentPoll = await response.json();
-                    displayCurrentPoll();
+                    console.log('currentPoll загружен:', currentPoll);
+                    console.log('options:', currentPoll.options);
+                    displayCurrentPoll();  // теперь currentPoll точно есть
+                    console.log('После вызова displayCurrentPoll');
                     addLog(`Опрос "${currentPoll.question}" загружен`, 'success');
-
-                    // Проверяем, голосовал ли пользователь в этом опросе
                     checkIfUserVoted();
                 } else {
                     addLog('Ошибка загрузки деталей опроса', 'error');
@@ -301,56 +305,81 @@
 
         // Отображение текущего опроса
         function displayCurrentPoll() {
-            const viewDiv = document.getElementById('currentPollView');
+            //console.log('displayCurrentPoll вызвана');
+
             if (!currentPoll) {
-                viewDiv.innerHTML = '<p style="color: #999;">Выберите опрос из списка слева</p>';
+                console.log('currentPoll пустой');
                 return;
             }
 
-            let optionsHtml = '';
-            currentPoll.options.forEach(option => {
-                optionsHtml += `
-                    <div class="option-item">
-                        <strong>${option.text}</strong>
-                        <button class="vote-button" onclick="voteForOption('${option.id}')" ${!isConnected || hasVoted ? 'disabled' : ''}>
-                            ${hasVoted ? 'Уже голосовали' : 'Голосовать'}
-                        </button>
-                        ${option.order !== undefined ? `<div class="result-stats">Голосов: ${option.order}</div>` : ''}
-                    </div>
-                `;
-            });
+            console.log('displayCurrentPoll: isInGroup =', isInGroup);  // добавьте
+            console.log('displayCurrentPoll: isConnected =', isConnected);  // добавьте
+
+            const viewDiv = document.getElementById('currentPollView');
 
             viewDiv.innerHTML = `
                 <h3>${currentPoll.question}</h3>
+                <p>Опций: ${currentPoll.options.length}</p>
                 <div>
                     <button onclick="joinPollGroup()" ${!isConnected ? 'disabled' : ''}>
                         ${hasVoted ? 'В группе' : 'Войти в группу опроса'}
                     </button>
-                    <button onclick="getCurrentResults()" ${!isConnected ? 'disabled' : ''}>
-                        Получить результаты
-                    </button>
                 </div>
-                <div id="pollOptions">
-                    ${optionsHtml}
-                </div>
+                <div id="pollOptions"></div>
             `;
+
+            const optionsDiv = document.getElementById('pollOptions');
+            let optionsHtml = '';
+            currentPoll.options.forEach(option => {
+                optionsHtml += `
+            <div class="option-item">
+                <strong>${option.text}</strong>
+                <button class="vote-button" onclick="voteForOption('${option.id}')" ${!isConnected || !isInGroup ? 'disabled' : ''}>
+                    Голосовать
+                </button>
+                ${option.order !== undefined ? `<div class="result-stats">Голосов: ${option.order}</div>` : ''}
+            </div>
+            `;
+            });
+            optionsDiv.innerHTML = optionsHtml;
         }
+
+
 
         // Вход в группу опроса
         async function joinPollGroup() {
+            //console.log('joinPollGroup вызвана');  // добавьте
+
             if (!isConnected || !currentPoll) {
                 addLog('Необходимо подключиться и выбрать опрос', 'error');
                 return;
             }
+            console.log('connection:', connection);
+            console.log('connection.state:', connection.state);
+            //console.log('До вызова connection.invoke');  // добавьте
 
             try {
                 addLog(`Вход в группу опроса ${currentPoll.id}...`, 'info');
                 await connection.invoke("JoinPollGroup", currentPoll.id, currentUser.id, currentUser.name);
                 addLog(`Успешно вошли в группу опроса "${currentPoll.question}"`, 'success');
+
+                isInGroup = true;
+                hasVoted = false;
+
+                console.log('isInGroup =', isInGroup);  // добавьте
+                console.log('isConnected =', isConnected);  // добавьте
+
+                // Обновляем отображение кнопок
+                displayCurrentPoll();
+
             } catch (error) {
                 addLog(`Ошибка входа в группу: ${error.message}`, 'error');
             }
         }
+
+
+
+
 
         // Голосование за вариант
         async function voteForOption(optionId) {
@@ -370,20 +399,6 @@
             }
         }
 
-        // Получение текущих результатов
-        async function getCurrentResults() {
-            if (!isConnected || !currentPoll) {
-                addLog('Необходимо подключиться и выбрать опрос', 'error');
-                return;
-            }
-
-            try {
-                addLog('Запрос текущих результатов...', 'info');
-                await connection.invoke("GetCurrentResults", currentPoll.id);
-            } catch (error) {
-                addLog(`Ошибка получения результатов: ${error.message}`, 'error');
-            }
-        }
 
         // Создание нового опроса
         async function createPoll() {
@@ -464,7 +479,6 @@
             });
 
             try {
-                console.log("___connectToSignalR___");
                 await connection.start();
                 isConnected = true;
                 updateConnectionStatus();

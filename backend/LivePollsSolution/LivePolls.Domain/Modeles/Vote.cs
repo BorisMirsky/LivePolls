@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 namespace LivePolls.Domain.Modeles
 {
+    [Table("votes")]
     public class Vote
     {
         [Key]
@@ -26,7 +27,6 @@ namespace LivePolls.Domain.Modeles
         [Column("votedat")]
         public DateTime VotedAt { get; set; } = DateTime.UtcNow;
 
-        // Навигационные свойства
         [ForeignKey("PollId")]
         public Poll? Poll { get; set; }
 

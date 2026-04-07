@@ -65,27 +65,6 @@ namespace LivePolls.Web.Controllers
             await _pollsService.CreatePoll(request); //.CreatorId, request.Question);
             return Ok();
 
-
-            //// Создаём опрос
-            //var poll = new Poll
-            //{
-            //    Question = request.Question,
-            //    CreatedAt = DateTime.UtcNow,
-            //    IsActive = true
-            //};
-
-            //// Добавляем варианты ответов
-            //foreach (var optionText in request.Options)
-            //{
-            //    poll.Options.Add(new PollOption { Text = optionText });
-            //}
-
-            //_context.Polls.Add(poll);
-            //await _context.SaveChangesAsync();
-
-            //// Возвращаем ID созданного опроса
-            //return Ok(new PollCreatedResponseDTO (poll.Id ));
-            //return Ok();
         }
     }
 }

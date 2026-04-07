@@ -1,7 +1,8 @@
-﻿using LivePolls.Domain.Modeles;
+﻿using LivePolls.DataAccess.Configuration;
+using LivePolls.Domain.Modeles;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 
 
 
@@ -15,7 +16,9 @@ namespace LivePolls.DataAccess
 
         public DbSet<Poll> Polls { get; set; } = null!;
         public DbSet<PollOption> PollOptions { get; set; } = null!;
-        //public DbSet<User> Users { get; set; }
+        public DbSet<UserConnection> UserConnections { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<Vote> Votes { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         { }
@@ -27,8 +30,11 @@ namespace LivePolls.DataAccess
             //modelBuilder.Entity<Vote>()
             //    .HasIndex(v => new { v.PollId, v.UserName })
             //    .IsUnique();
-            modelBuilder.ApplyConfiguration(new Configuration.PollConfiguration());
-            modelBuilder.ApplyConfiguration(new Configuration.PollOptionConfiguration());
+            modelBuilder.ApplyConfiguration(new PollConfiguration());
+            modelBuilder.ApplyConfiguration(new PollOptionConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConnectionConfiguration());
+            modelBuilder.ApplyConfiguration(new VoteConfiguration());
             base.OnModelCreating(modelBuilder);
         }
     }

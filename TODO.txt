@@ -6,8 +6,22 @@ http://localhost:5063/swagger/index.html        адрес сваггера
 
 todo: 
 
-1 js клиента прикрутить для тестирования
-2 Cursor AI
+- js клиента прикрутить для тестирования
+-- create & allPolls  - ok
+-- onePoll  - 
+--- логика голосования на фронте: войти в группу? получить результаты? увидеть результаты?
+---- логика в хабе
+
+
+- бизнес логика
+
+- redis
+
+- Cursor AI
+
+- frontend (vue)
+
+
 
 
 
@@ -16,22 +30,16 @@ todo:
 CreatorId - откуда брать?
 
 
-------------------------------------------------------
-
-JoinPollGroup
-- Юзер заносится в БД и в группу
--
 
 
 
-Vote
 
 
-GetCurrentResults
 
 
----------------------------------------------------------
 
-На строке:  connection = new signalR.HubConnectionBuilder()
 
-ошибка:  ncaught (in promise) ReferenceError: signalR is not defined at HTMLButtonElement.connectToSignalR 
+
+
+
+
