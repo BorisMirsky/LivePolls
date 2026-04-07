@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LivePolls - Тестирование SignalR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
-    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signr/8.0.7/signalr.min.js"></script>   -->
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -282,10 +281,7 @@
                 const response = await fetch(`/Polls/GetOnePoll?id=${pollId}`);
                 if (response.ok) {
                     currentPoll = await response.json();
-                    console.log('currentPoll загружен:', currentPoll);
-                    console.log('options:', currentPoll.options);
                     displayCurrentPoll();  // теперь currentPoll точно есть
-                    console.log('После вызова displayCurrentPoll');
                     addLog(`Опрос "${currentPoll.question}" загружен`, 'success');
                     checkIfUserVoted();
                 } else {
@@ -305,13 +301,10 @@
 
         // Отображение текущего опроса
         function displayCurrentPoll() {
-
             if (!currentPoll) {
                 console.log('currentPoll пустой');
                 return;
             }
-            console.log('При отображении currentPoll.options[0]:', currentPoll.options[0]); 
-
             const viewDiv = document.getElementById('currentPollView');
 
             viewDiv.innerHTML = `
@@ -339,35 +332,23 @@
                     `;
             });
             optionsDiv.innerHTML = optionsHtml;
-            console.log('displayCurrentPoll: isConnected=', isConnected, 'isInGroup=', isInGroup, 'hasVoted=', hasVoted);
         }
 
 
 
         // Вход в группу опроса
         async function joinPollGroup() {
-            //console.log('joinPollGroup вызвана');  // добавьте
-
             if (!isConnected || !currentPoll) {
                 addLog('Необходимо подключиться и выбрать опрос', 'error');
                 return;
             }
-            //console.log('connection:', connection);
-            //console.log('connection.state:', connection.state);
-            //console.log('До вызова connection.invoke');  // добавьте
 
             try {
                 addLog(`Вход в группу опроса ${currentPoll.id}...`, 'info');
                 await connection.invoke("JoinPollGroup", currentPoll.id, currentUser.id, currentUser.name);
-                console.log('Invoke выполнен успешно');  // добавьте
                 addLog(`Успешно вошли в группу опроса "${currentPoll.question}"`, 'success');
-
                 isInGroup = true;
                 hasVoted = false;
-
-                console.log('isInGroup =', isInGroup);  // добавьте
-                console.log('isConnected =', isConnected);  // добавьте
-
                 // Обновляем отображение кнопок
                 displayCurrentPoll();
 
@@ -378,13 +359,6 @@
 
         // Голосование за вариант
         async function voteForOption(optionId) {
-            //console.log('voteForOption вызвана, optionId:', optionId);
-            //console.log('isConnected:', isConnected, 'currentPoll:', currentPoll, 'isInGroup:', isInGroup);
-
-            //if (!isConnected || !currentPoll || hasVoted) {
-            //    addLog('Невозможно проголосовать: проверьте подключение и выберите опрос', 'error');
-            //    return;
-            //}
 
             if (!isConnected || !currentPoll || !isInGroup) {
                 addLog('Невозможно проголосовать', 'error');
@@ -395,10 +369,6 @@
                 addLog(`Голосование за вариант ${optionId}...`, 'info');
                 await connection.invoke("Vote", currentPoll.id, optionId, currentUser.id);
                 addLog('Голос успешно учтён', 'success');
-                //hasVoted = true;
-                //isInGroup = false; 
-                //displayCurrentPoll();
-                //console.log('hasVoted:', hasVoted, 'isInGroup:', isInGroup);
             } catch (error) {
                 addLog(`Ошибка голосования: ${error.message}`, 'error');
             }
@@ -484,15 +454,15 @@
 
                 connection.on("PollResults", (results) => {
                     addLog('Получены результаты опроса', 'info');
-                    console.log('PollResults:', results);
-                    console.log('Первый option:', results.options[0]);
+                    //console.log('PollResults:', results);
+                    //console.log('Первый option:', results.options[0]);
                     if (results && results.options) {
                             currentPoll = {
                                     ...currentPoll,
                                     question: results.question,
                                     options: results.options
                         };
-                            console.log('После обновления currentPoll.options[0]:', currentPoll.options[0]);
+                            //console.log('После обновления currentPoll.options[0]:', currentPoll.options[0]);
                             hasVoted = true;
                             isInGroup = false;
                             displayCurrentPoll();
