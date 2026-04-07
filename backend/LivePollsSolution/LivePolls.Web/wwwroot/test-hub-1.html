@@ -276,7 +276,7 @@
         // Загрузка деталей опроса
         async function loadPollDetails(pollId) {
             isInGroup = false;
-
+            hasVoted = false;
             try {
                 addLog(`Загрузка опроса ${pollId}...`, 'info');
                 const response = await fetch(`/Polls/GetOnePoll?id=${pollId}`);
@@ -305,15 +305,12 @@
 
         // Отображение текущего опроса
         function displayCurrentPoll() {
-            //console.log('displayCurrentPoll вызвана');
 
             if (!currentPoll) {
                 console.log('currentPoll пустой');
                 return;
             }
-
-            console.log('displayCurrentPoll: isInGroup =', isInGroup);  // добавьте
-            console.log('displayCurrentPoll: isConnected =', isConnected);  // добавьте
+            console.log('При отображении currentPoll.options[0]:', currentPoll.options[0]); 
 
             const viewDiv = document.getElementById('currentPollView');
 
@@ -321,9 +318,9 @@
                 <h3>${currentPoll.question}</h3>
                 <p>Опций: ${currentPoll.options.length}</p>
                 <div>
-                    <button onclick="joinPollGroup()" ${!isConnected ? 'disabled' : ''}>
-                        ${hasVoted ? 'В группе' : 'Войти в группу опроса'}
-                    </button>
+                    <button onclick="joinPollGroup()" ${!isConnected || hasVoted ? 'disabled' : ''}>
+                         ${hasVoted ? 'Голос учтён' : 'Войти в группу опроса'}
+                     </button>
                 </div>
                 <div id="pollOptions"></div>
             `;
@@ -332,16 +329,17 @@
             let optionsHtml = '';
             currentPoll.options.forEach(option => {
                 optionsHtml += `
-            <div class="option-item">
-                <strong>${option.text}</strong>
-                <button class="vote-button" onclick="voteForOption('${option.id}')" ${!isConnected || !isInGroup ? 'disabled' : ''}>
-                    Голосовать
-                </button>
-                ${option.order !== undefined ? `<div class="result-stats">Голосов: ${option.order}</div>` : ''}
-            </div>
-            `;
+                    <div class="option-item">
+                        <strong>${option.text}</strong>
+                        <button class="vote-button" onclick="voteForOption('${option.optionId}')" ${!isConnected || !isInGroup || hasVoted ? 'disabled' : ''}>
+                            Голосовать
+                        </button>
+                        <div class="result-stats">Голосов: ${option.voteCount} (${option.percentage}%)</div>
+                    </div>
+                    `;
             });
             optionsDiv.innerHTML = optionsHtml;
+            console.log('displayCurrentPoll: isConnected=', isConnected, 'isInGroup=', isInGroup, 'hasVoted=', hasVoted);
         }
 
 
@@ -354,13 +352,14 @@
                 addLog('Необходимо подключиться и выбрать опрос', 'error');
                 return;
             }
-            console.log('connection:', connection);
-            console.log('connection.state:', connection.state);
+            //console.log('connection:', connection);
+            //console.log('connection.state:', connection.state);
             //console.log('До вызова connection.invoke');  // добавьте
 
             try {
                 addLog(`Вход в группу опроса ${currentPoll.id}...`, 'info');
                 await connection.invoke("JoinPollGroup", currentPoll.id, currentUser.id, currentUser.name);
+                console.log('Invoke выполнен успешно');  // добавьте
                 addLog(`Успешно вошли в группу опроса "${currentPoll.question}"`, 'success');
 
                 isInGroup = true;
@@ -377,14 +376,18 @@
             }
         }
 
-
-
-
-
         // Голосование за вариант
         async function voteForOption(optionId) {
-            if (!isConnected || !currentPoll || hasVoted) {
-                addLog('Невозможно проголосовать: проверьте подключение и выберите опрос', 'error');
+            //console.log('voteForOption вызвана, optionId:', optionId);
+            //console.log('isConnected:', isConnected, 'currentPoll:', currentPoll, 'isInGroup:', isInGroup);
+
+            //if (!isConnected || !currentPoll || hasVoted) {
+            //    addLog('Невозможно проголосовать: проверьте подключение и выберите опрос', 'error');
+            //    return;
+            //}
+
+            if (!isConnected || !currentPoll || !isInGroup) {
+                addLog('Невозможно проголосовать', 'error');
                 return;
             }
 
@@ -392,8 +395,10 @@
                 addLog(`Голосование за вариант ${optionId}...`, 'info');
                 await connection.invoke("Vote", currentPoll.id, optionId, currentUser.id);
                 addLog('Голос успешно учтён', 'success');
-                hasVoted = true;
-                displayCurrentPoll();
+                //hasVoted = true;
+                //isInGroup = false; 
+                //displayCurrentPoll();
+                //console.log('hasVoted:', hasVoted, 'isInGroup:', isInGroup);
             } catch (error) {
                 addLog(`Ошибка голосования: ${error.message}`, 'error');
             }
@@ -451,44 +456,72 @@
                 return;
             }
 
-            currentUser.name = userName;
-            currentUser.id = generateUserId();
-
-            connection = new signalR.HubConnectionBuilder()
-                .withUrl("/VoteHub")
-                .configureLogging(signalR.LogLevel.Information)
-                .build();
-
-            // Обработчики сообщений от хаба
-            connection.on("PollResults", (results) => {
-                addLog('Получены результаты опроса', 'info');
-                if (currentPoll && results) {
-                    // Обновляем результаты в текущем опросе
-                    if (results.options) {
-                        currentPoll.options = results.options;
-                        displayCurrentPoll();
-                        addLog('Результаты обновлены', 'success');
-                    }
-                }
-            });
-
-            connection.onclose(() => {
-                isConnected = false;
-                updateConnectionStatus();
-                addLog('Соединение разорвано', 'error');
-            });
-
             try {
+                // 1. Сначала регистрируем пользователя через REST API
+                addLog('Регистрация пользователя...', 'info');
+                const response = await fetch('/Users/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userName)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Ошибка регистрации');
+                }
+
+                const userId = await response.json();
+                currentUser.id = userId;
+                currentUser.name = userName;
+                addLog(`Пользователь зарегистрирован: ${currentUser.name} (${currentUser.id})`, 'success');
+
+                // 2. Подключаемся к SignalR
+                connection = new signalR.HubConnectionBuilder()
+                    .withUrl("/VoteHub")
+                    .configureLogging(signalR.LogLevel.Information)
+                    .build();
+
+                connection.on("PollResults", (results) => {
+                    addLog('Получены результаты опроса', 'info');
+                    console.log('PollResults:', results);
+                    console.log('Первый option:', results.options[0]);
+                    if (results && results.options) {
+                            currentPoll = {
+                                    ...currentPoll,
+                                    question: results.question,
+                                    options: results.options
+                        };
+                            console.log('После обновления currentPoll.options[0]:', currentPoll.options[0]);
+                            hasVoted = true;
+                            isInGroup = false;
+                            displayCurrentPoll();
+                            addLog('Результаты обновлены', 'success');
+                        } else {
+                            console.log('Нет options в results');
+                        }
+                    //}
+                });
+
+                connection.onclose(() => {
+                    isConnected = false;
+                    updateConnectionStatus();
+                    addLog('Соединение разорвано', 'error');
+                });
+
                 await connection.start();
                 isConnected = true;
                 updateConnectionStatus();
-                addLog(`Подключено к SignalR как ${currentUser.name} (${currentUser.id})`, 'success');
+                addLog(`Подключено к SignalR`, 'success');
+
             } catch (error) {
-                addLog(`Ошибка подключения: ${error.message}`, 'error');
+                addLog(`Ошибка: ${error.message}`, 'error');
                 isConnected = false;
                 updateConnectionStatus();
             }
         }
+
+
 
         // Отключение от SignalR
         async function disconnectFromSignalR() {
@@ -496,12 +529,20 @@
                 try {
                     await connection.stop();
                     isConnected = false;
+                    isInGroup = false;
+                    hasVoted = false;
+                    currentPoll = null;
+                    currentUser = { id: null, name: null };
+
                     updateConnectionStatus();
                     addLog('Отключено от SignalR', 'info');
-                    currentUser = { id: null, name: null };
-                    currentPoll = null;
-                    hasVoted = false;
-                    displayCurrentPoll();
+
+                    // Очищаем правый блок
+                    const viewDiv = document.getElementById('currentPollView');
+                    viewDiv.innerHTML = '<p style="color: #999;">Выберите опрос из списка слева</p>';
+
+                    // Очищаем список опросов (опционально)
+                    // document.getElementById('pollsList').innerHTML = '';
                 } catch (error) {
                     addLog(`Ошибка отключения: ${error.message}`, 'error');
                 }

@@ -23,6 +23,8 @@ builder.Services.AddScoped<IVoteHubService, VoteHubService>();
 builder.Services.AddScoped<IVoteHubRepository, VoteHubRepository>();
 builder.Services.AddScoped<IPollsService, PollsService>();
 builder.Services.AddScoped<IPollsRepo, PollsRepo>();
+builder.Services.AddScoped<IUsersService, UsersService>();
+builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 
 builder.Services.AddSignalR();
 

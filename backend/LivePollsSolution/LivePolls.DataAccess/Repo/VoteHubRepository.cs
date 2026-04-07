@@ -9,14 +9,17 @@ namespace LivePolls.DataAccess.Repo
 {
     public class VoteHubRepository : IVoteHubRepository
     {
+
         private readonly AppDbContext _context;
         private readonly ILogger<VoteHubRepository> _logger;
+
 
         public VoteHubRepository(AppDbContext context, ILogger<VoteHubRepository> logger)
         {
             _context = context;
             _logger = logger;
         }
+
 
         public async Task<Poll?> GetPollWithOptionsAsync(Guid pollId)
         {
@@ -25,11 +28,13 @@ namespace LivePolls.DataAccess.Repo
                 .FirstOrDefaultAsync(p => p.Id == pollId);
         }
 
+
         public async Task<bool> HasUserVotedAsync(Guid pollId, Guid userId)
         {
             return await _context.Set<Vote>()
                 .AnyAsync(v => v.PollId == pollId && v.UserId == userId);
         }
+
 
         public async Task<Vote> AddVoteAsync(Guid pollId, Guid optionId, Guid userId)
         {
@@ -75,6 +80,7 @@ namespace LivePolls.DataAccess.Repo
             }
         }
 
+
         public async Task AddUserConnectionAsync(Guid userId, string connectionId, Guid? pollId = null)
         {
             var connection = new UserConnection
@@ -91,6 +97,7 @@ namespace LivePolls.DataAccess.Repo
             await _context.SaveChangesAsync();
         }
 
+
         public async Task RemoveUserConnectionAsync(string connectionId)
         {
             var connection = await _context.Set<UserConnection>()
@@ -102,6 +109,7 @@ namespace LivePolls.DataAccess.Repo
                 await _context.SaveChangesAsync();
             }
         }
+
 
         public async Task<IEnumerable<UserConnection>> GetPollConnectionsAsync(Guid pollId)
         {

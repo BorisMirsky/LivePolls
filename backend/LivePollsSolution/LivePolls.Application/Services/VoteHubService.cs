@@ -6,8 +6,10 @@ namespace LivePolls.Application.Services
 {
     public class VoteHubService : IVoteHubService
     {
+
         private readonly IVoteHubRepository _repository;
         private readonly ILogger<VoteHubService> _logger;
+
 
         public VoteHubService(IVoteHubRepository repository, ILogger<VoteHubService> logger)
         {
@@ -27,10 +29,12 @@ namespace LivePolls.Application.Services
             return poll;
         }
 
+
         public async Task<bool> HasUserVotedAsync(Guid pollId, Guid userId)
         {
             return await _repository.HasUserVotedAsync(pollId, userId);
         }
+
 
         public async Task<Vote> ProcessVoteAsync(Guid pollId, Guid optionId, Guid userId)
         {
@@ -58,6 +62,7 @@ namespace LivePolls.Application.Services
             return await _repository.AddVoteAsync(pollId, optionId, userId);
         }
 
+
         public async Task<PollResultsDto> GetPollResultsAsync(Guid pollId)
         {
             var poll = await _repository.GetPollWithOptionsAsync(pollId);
@@ -83,14 +88,17 @@ namespace LivePolls.Application.Services
             );
         }
 
+
         public async Task RegisterUserConnectionAsync(Guid userId, string connectionId, Guid? pollId = null)
         {
             await _repository.AddUserConnectionAsync(userId, connectionId, pollId);
         }
 
+
         public async Task UnregisterUserConnectionAsync(string connectionId)
         {
             await _repository.RemoveUserConnectionAsync(connectionId);
         }
+
     }
 }
