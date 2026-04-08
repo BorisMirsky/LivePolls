@@ -18,55 +18,19 @@ namespace LivePolls.Application.Services
         public async Task<List<Poll>> GetPolls()
         {
             return await _pollsRepo.GetPolls();
-            //var polls = await _pollsRepo.GetPolls();
-            //return polls.Select(p => new PollResponseDTO
-            //(
-            //    p.Id,
-            //    p.CreatorId,
-            //    p.CreatedAt,
-            //    p.EndDate,
-            //    p.IsActive,
-            //    p.Question,
-            //    p.Options.Select(o => new PollOptionResponseDTO
-            //    (
-            //        o.Id,
-            //        o.Text,
-            //        o.Order
-            //    )).ToList()
-            //)).ToList();
         }
-
-        //public async Task<List<PollResponseDTO>> GetPolls()  // ← измените тип возврата
-        //{
-        //    var polls = await _pollsRepo.GetPolls();
-        //    return polls.Select(p => new PollResponseDTO
-        //    (
-        //        p.Id,
-        //        p.CreatorId,
-        //        p.CreatedAt,
-        //        p.EndDate,
-        //        p.IsActive,
-        //        p.Question,
-        //        p.Options.Select(o => new PollOptionResponseDTO
-        //        (
-        //            o.Id,
-        //            o.Text,
-        //            o.Order
-        //        )).ToList()
-        //    )).ToList();
-        //}
-
 
         public async Task<Poll> GetOnePoll(Guid id)
         {
                 return await _pollsRepo.GetOnePoll(id);
         }
 
+
+        // 
         public async Task<Poll> CreatePoll(CreatePollRequestDTO request)
         {
-            //var updatedPerson = person with { Age = 31 }; 
-            DateTime today = DateTime.Now;
-            DateTime tomorrow = today.AddDays(1);
+            //DateTime today = DateTime.Now;
+            //DateTime tomorrow = today.AddDays(1);
             //int endday = request.EndDate ?? DateTime.UtcNow.AddDays(7);
             //request.EndDate.Add("Chandler");
             //var updatedPerson = person with { Age = 31 }; 

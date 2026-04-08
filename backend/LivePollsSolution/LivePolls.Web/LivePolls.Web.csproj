@@ -30,9 +30,4 @@
     <ProjectReference Include="..\LivePolls.Domain\LivePolls.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="wwwroot\index.html" />
-    <None Include="wwwroot\test-hub.html" />
-  </ItemGroup>
-
 </Project>

@@ -23,19 +23,51 @@ namespace LivePolls.DataAccess.Repo
         }
 
 
-        public async Task<List<Poll>> GetPolls()
+        // проверка на срок жизни опроса
+        public async Task<List<Poll>> GetUpdatedPolls()
         {
             var entities = await _context.Polls.ToListAsync();
+            foreach (var ent in entities)
+            {
+                var endDate = ent.EndDate;
+                await _context.Polls
+                                .Where(item => item.EndDate < DateTime.UtcNow)
+                                .ExecuteUpdateAsync(s => s
+                                .SetProperty(s => s.IsActive, s => false)
+                );
+            }
+            return entities;
+        }
+
+
+
+        public async Task<List<Poll>> GetPolls()
+        {
+            //var entities = await _context.Polls.ToListAsync();
+            var entities = await GetUpdatedPolls();
+            // проверка на срок жизни опроса
+            //foreach (var ent in entities)
+            //{
+            //    var endDate = ent.EndDate;
+            //    if (endDate < DateTime.UtcNow)
+            //    {
+            //        await _context.Polls
+            //                    .Where(item => item.Id == id)
+            //                    .ExecuteUpdateAsync(s => s
+            //                    .SetProperty(s => s.IsClosed, s => true)
+            //    );
+            //        //ent.IsActive = false;
+            //        //await _context.Polls.AddAsync(ent);
+            //        //await _context.SaveChangesAsync();
+            //    }
+            //}
+            ////
             foreach (var ent in entities)
             {
                 var options = _context.PollOptions
                                 .Where(o => o.PollId == ent.Id)
                                 .ToList();
                 ent.Options = options; 
-                //foreach (var opt in options)
-                //{
-                //    ent.Options.Add(opt);
-                //}
             }
 
             if (entities.Equals(0))
@@ -44,6 +76,7 @@ namespace LivePolls.DataAccess.Repo
             }
             return entities; 
         }
+
 
         public async Task<Poll> GetOnePoll(Guid id)
         {
@@ -56,15 +89,10 @@ namespace LivePolls.DataAccess.Repo
 
             foreach (var opt in options)
             {
-                entity.Options.Add(opt);
+                entity?.Options.Add(opt);
 
             }
-                //if (entity.Equals(0))
-                //{
-                //    Debug.WriteLine("there are not poll with such id");
-                //    //throw new Exception($"Doctors with speciality {speciality} not found");
-                //}
-                return entity!;
+             return entity!;
         }
 
 
@@ -72,11 +100,19 @@ namespace LivePolls.DataAccess.Repo
         {
             var pollId = Guid.NewGuid();
             var poll = new Poll();
-            poll.CreatorId = Guid.NewGuid();    // request.CreatorId;                   
+            poll.CreatorId = Guid.NewGuid();                  
             poll.CreatedAt = DateTime.UtcNow;
             DateTime today = DateTime.Now;
-            poll.EndDate = today.AddDays(7);
-            poll.IsActive = true;
+            if (request.Lifespan > 0)
+            {
+                poll.EndDate = today.AddDays(request.Lifespan);
+                poll.IsActive = true;
+            }
+            else
+            {
+                poll.EndDate = DateTime.UtcNow;
+                poll.IsActive = false;
+            }
             poll.Question = request.Question;
             poll.Options = request.Options.Select(o => new PollOption { Id = Guid.NewGuid(), Text = o, PollId = pollId }).ToList();
             await _context.Polls.AddAsync(poll);
@@ -84,7 +120,6 @@ namespace LivePolls.DataAccess.Repo
             {
                 await _context.PollOptions.AddAsync(opt);
             }
-            //await _context.PollOptions.AddAsync(poll.Options);
             await _context.SaveChangesAsync();
             return poll;
         }
