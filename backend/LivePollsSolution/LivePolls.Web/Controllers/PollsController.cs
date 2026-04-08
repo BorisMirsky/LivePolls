@@ -55,7 +55,6 @@ namespace LivePolls.Web.Controllers
         }
 
 
-
         [Route("CreatePoll")]
         [HttpPost]
         public async Task<ActionResult<Poll>> CreatePoll([FromBody] CreatePollRequestDTO request)

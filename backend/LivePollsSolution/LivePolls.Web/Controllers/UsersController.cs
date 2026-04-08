@@ -20,8 +20,7 @@ namespace LivePolls.Web.Controllers
             if (string.IsNullOrWhiteSpace(userName))
                 return BadRequest(new { message = "Имя пользователя не может быть пустым" });
 
-            var userId = Guid.NewGuid();
-            var user = await _usersService.GetOrCreateUserAsync(userId, userName);
+            var user = await _usersService.GetOrCreateUserAsync(userName);
             return Ok(user.Id);
         }
     }

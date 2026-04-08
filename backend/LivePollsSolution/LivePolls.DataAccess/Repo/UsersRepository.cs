@@ -18,11 +18,16 @@ namespace LivePolls.DataAccess.Repo
             return await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
         }
 
-        public async Task<User> CreateUserAsync(Guid userId, string userName)
+        public async Task<User?> GetUserByNameAsync(string userName)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Name == userName);
+        }
+
+        public async Task<User> CreateUserAsync(string userName)
         {
             var user = new User
             {
-                Id = userId,
+                Id = Guid.NewGuid(),
                 Name = userName,
                 Login = userName,
                 Password = null

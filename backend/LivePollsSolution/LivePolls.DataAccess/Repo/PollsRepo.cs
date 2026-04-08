@@ -40,28 +40,9 @@ namespace LivePolls.DataAccess.Repo
         }
 
 
-
         public async Task<List<Poll>> GetPolls()
         {
-            //var entities = await _context.Polls.ToListAsync();
             var entities = await GetUpdatedPolls();
-            // проверка на срок жизни опроса
-            //foreach (var ent in entities)
-            //{
-            //    var endDate = ent.EndDate;
-            //    if (endDate < DateTime.UtcNow)
-            //    {
-            //        await _context.Polls
-            //                    .Where(item => item.Id == id)
-            //                    .ExecuteUpdateAsync(s => s
-            //                    .SetProperty(s => s.IsClosed, s => true)
-            //    );
-            //        //ent.IsActive = false;
-            //        //await _context.Polls.AddAsync(ent);
-            //        //await _context.SaveChangesAsync();
-            //    }
-            //}
-            ////
             foreach (var ent in entities)
             {
                 var options = _context.PollOptions

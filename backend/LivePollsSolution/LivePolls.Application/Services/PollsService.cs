@@ -29,12 +29,6 @@ namespace LivePolls.Application.Services
         // 
         public async Task<Poll> CreatePoll(CreatePollRequestDTO request)
         {
-            //DateTime today = DateTime.Now;
-            //DateTime tomorrow = today.AddDays(1);
-            //int endday = request.EndDate ?? DateTime.UtcNow.AddDays(7);
-            //request.EndDate.Add("Chandler");
-            //var updatedPerson = person with { Age = 31 }; 
-            //var updatedRequest = request with { EndDate = today.AddDays(request.EndDate) };
             return await _pollsRepo.CreatePoll(request);
         }
     }

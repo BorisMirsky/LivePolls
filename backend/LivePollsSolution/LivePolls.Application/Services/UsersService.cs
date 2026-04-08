@@ -12,12 +12,12 @@ namespace LivePolls.Application.Services
             _repository = repository;
         }
 
-        public async Task<User> GetOrCreateUserAsync(Guid userId, string userName)
+        public async Task<User> GetOrCreateUserAsync(string userName)
         {
-            var user = await _repository.GetUserByIdAsync(userId);
+            var user = await _repository.GetUserByNameAsync(userName);
             if (user == null)
             {
-                user = await _repository.CreateUserAsync(userId, userName);
+                user = await _repository.CreateUserAsync(userName);
             }
             return user;
         }

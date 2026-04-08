@@ -45,34 +45,6 @@ namespace LivePolls.Web.Hubs
             }
         }
 
-
-        public async Task JoinPollGroup1(Guid pollId, Guid userId, string userName)
-        {
-            try
-            {
-                // Проверяем существование опроса
-                var poll = await _voteHubService.GetPollWithOptionsAsync(pollId);
-
-                // Добавляем в группу SignalR
-                await Groups.AddToGroupAsync(Context.ConnectionId, pollId.ToString());
-
-                // Регистрируем подключение в БД
-                await _voteHubService.RegisterUserConnectionAsync(userId, Context.ConnectionId, pollId);
-
-                // Отправляем текущие результаты
-                var results = await _voteHubService.GetPollResultsAsync(pollId);
-                await Clients.Caller.SendAsync("PollResults", results);
-
-                _logger.LogInformation("User {UserId} ({UserName}) joined poll {PollId}",
-                    userId, userName, pollId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error joining poll group");
-                throw new HubException(ex.Message);
-            }
-        }
-
         public async Task Vote(Guid pollId, Guid optionId, Guid userId)
         {
             try
@@ -92,8 +64,6 @@ namespace LivePolls.Web.Hubs
                 throw new HubException(ex.Message);
             }
         }
-
-
 
         public async Task GetCurrentResults(Guid pollId)
         {

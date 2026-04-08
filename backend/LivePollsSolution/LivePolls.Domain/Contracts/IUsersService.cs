@@ -5,6 +5,6 @@ namespace LivePolls.Domain.Abstractions
 {
     public interface IUsersService
     {
-        Task<User> GetOrCreateUserAsync(Guid userId, string userName);
+        Task<User> GetOrCreateUserAsync(string userName);
     }
 }
