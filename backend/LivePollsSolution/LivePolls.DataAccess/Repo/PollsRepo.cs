@@ -81,17 +81,19 @@ namespace LivePolls.DataAccess.Repo
         {
             var pollId = Guid.NewGuid();
             var poll = new Poll();
-            poll.CreatorId = Guid.NewGuid();                  
-            poll.CreatedAt = DateTime.UtcNow;
-            DateTime today = DateTime.Now;
+            poll.CreatorId = Guid.NewGuid();
+            DateTime dt = DateTime.Now;
+            //dt = dt.AddSeconds(-dt.Second);
+            poll.CreatedAt = dt;
+            //DateTime today = DateTime.Now;
             if (request.Lifespan > 0)
             {
-                poll.EndDate = today.AddDays(request.Lifespan);
+                poll.EndDate = dt.AddDays(request.Lifespan);
                 poll.IsActive = true;
             }
             else
             {
-                poll.EndDate = DateTime.UtcNow;
+                poll.EndDate = dt;
                 poll.IsActive = false;
             }
             poll.Question = request.Question;
