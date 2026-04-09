@@ -61,9 +61,11 @@ namespace LivePolls.DataAccess.Repo
 
         public async Task<Poll> GetOnePoll(Guid id)
         {
+
             var options = _context.PollOptions
                 .Where(o => o.PollId == id)
                 .ToList();
+
             Poll? entity = await _context.Polls
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -73,7 +75,8 @@ namespace LivePolls.DataAccess.Repo
                 entity?.Options.Add(opt);
 
             }
-             return entity!;
+
+            return entity!;
         }
 
 
@@ -83,9 +86,7 @@ namespace LivePolls.DataAccess.Repo
             var poll = new Poll();
             poll.CreatorId = Guid.NewGuid();
             DateTime dt = DateTime.Now;
-            //dt = dt.AddSeconds(-dt.Second);
             poll.CreatedAt = dt;
-            //DateTime today = DateTime.Now;
             if (request.Lifespan > 0)
             {
                 poll.EndDate = dt.AddDays(request.Lifespan);

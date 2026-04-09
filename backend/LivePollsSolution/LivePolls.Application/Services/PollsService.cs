@@ -1,13 +1,13 @@
-﻿using LivePolls.Application.Services;
+﻿
 using LivePolls.Domain.Abstractions;
 using LivePolls.Domain.Modeles;
-using Microsoft.Extensions.Options;
-using System;
+
 
 namespace LivePolls.Application.Services
 {
     public class PollsService : IPollsService
     {
+
         private readonly IPollsRepo _pollsRepo;
 
         public PollsService(IPollsRepo pollsRepo)
@@ -26,7 +26,6 @@ namespace LivePolls.Application.Services
         }
 
 
-        // 
         public async Task<Poll> CreatePoll(CreatePollRequestDTO request)
         {
             return await _pollsRepo.CreatePoll(request);

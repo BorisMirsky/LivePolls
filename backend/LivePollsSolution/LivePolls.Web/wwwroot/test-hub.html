@@ -209,12 +209,12 @@
         }
 
         // Генерация временного ID пользователя (в реальном приложении должен быть бэкенд)
-        function generateUserId() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
+        //function generateUserId() {
+        //    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        //        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        //        return v.toString(16);
+        //    });
+        //}
 
         // Обновление статуса подключения
         function updateConnectionStatus() {
@@ -284,7 +284,7 @@
                 const response = await fetch(`/Polls/GetOnePoll?id=${pollId}`);
                 if (response.ok) {
                     currentPoll = await response.json();
-                    displayCurrentPoll();  // теперь currentPoll точно есть
+                    displayCurrentPoll();  
                     addLog(`Опрос "${currentPoll.question}" загружен`, 'success');
                     checkIfUserVoted();
                 } else {
@@ -337,8 +337,6 @@
             optionsDiv.innerHTML = optionsHtml;
         }
 
-
-
         // Вход в группу опроса
         async function joinPollGroup() {
             if (!isConnected || !currentPoll) {
@@ -362,7 +360,6 @@
 
         // Голосование за вариант
         async function voteForOption(optionId) {
-
             if (!isConnected || !currentPoll || !isInGroup) {
                 addLog('Невозможно проголосовать', 'error');
                 return;
@@ -377,24 +374,20 @@
             }
         }
 
-
         // Создание нового опроса
         async function createPoll() {
             const question = document.getElementById('questionInput').value.trim();
             const optionsText = document.getElementById('optionsInput').value.trim();
             const lifespan = document.getElementById('lifespan').value.trim();
-
             if (!question || !optionsText || !lifespan) {
                 addLog('Заполните вопрос и варианты ответов', 'error');
                 return;
             }
-
             const options = optionsText.split('\n').filter(opt => opt.trim().length > 0);
             if (options.length < 2) {
                 addLog('Добавьте минимум 2 варианта ответа', 'error');
                 return;
             }
-
             try {
                 addLog('Создание нового опроса...', 'info');
                 const response = await fetch('/Polls/CreatePoll', {
@@ -431,7 +424,6 @@
                 addLog('Введите имя пользователя', 'error');
                 return;
             }
-
             try {
                 // 1. Сначала регистрируем пользователя через REST API
                 addLog('Регистрация пользователя...', 'info');
@@ -442,11 +434,9 @@
                     },
                     body: JSON.stringify(userName)
                 });
-
                 if (!response.ok) {
                     throw new Error('Ошибка регистрации');
                 }
-
                 const userId = await response.json();
                 currentUser.id = userId;
                 currentUser.name = userName;
@@ -496,8 +486,6 @@
                 updateConnectionStatus();
             }
         }
-
-
 
         // Отключение от SignalR
         async function disconnectFromSignalR() {

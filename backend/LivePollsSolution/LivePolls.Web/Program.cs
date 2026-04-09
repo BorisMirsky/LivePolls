@@ -5,8 +5,6 @@ using LivePolls.DataAccess.Repo;
 using LivePolls.Domain.Abstractions;
 using LivePolls.Web.Controllers;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
-using System.Text.Json.Serialization;
 
 
 
@@ -29,12 +27,9 @@ builder.Services.AddSignalR();
 
 builder.Services.AddHealthChecks();
 builder.Services.AddSwaggerGen();
-//builder.Services.AddAuthorization();
-
 
 
 var app = builder.Build();
-
 
 if (app.Environment.IsDevelopment())
 {
@@ -42,19 +37,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseDefaultFiles();
+app.UseDefaultFiles(); 
 app.UseStaticFiles();
-//app.UseStaticFiles(new StaticFileOptions
-//{
-//    FileProvider = new PhysicalFileProvider(
-//        Path.Combine(builder.Environment.ContentRootPath, "TestPages")),
-//    RequestPath = "/tests"
-//});
-
-//app.UseHttpsRedirection();
-//app.UseAuthorization();
-
-
 
 app.UseCors(x =>
 {
@@ -63,10 +47,7 @@ app.UseCors(x =>
     x.WithMethods().AllowAnyMethod();
 });
 
-
 app.UseCors("SignalRPolicy");
 app.MapHub<VoteHub>("/VoteHub");
 app.MapControllers();
-
 app.Run();
-

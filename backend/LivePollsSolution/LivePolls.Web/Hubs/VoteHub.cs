@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using LivePolls.Domain.Abstractions;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
+
 
 namespace LivePolls.Web.Hubs
 {
     public class VoteHub : Hub
     {
+
         private readonly IVoteHubService _voteHubService;
         private readonly ILogger<VoteHub> _logger;
 
@@ -85,5 +85,6 @@ namespace LivePolls.Web.Hubs
 
             await base.OnDisconnectedAsync(exception);
         }
+
     }
 }

@@ -1,13 +1,8 @@
-﻿using LivePolls.DataAccess;
+﻿
 using LivePolls.Domain.Abstractions;
 using LivePolls.Domain.Modeles;
-
 using LivePolls.Application.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-
 
 
 
@@ -29,7 +24,6 @@ namespace LivePolls.Web.Controllers
         [HttpGet]
         public async Task<ActionResult<List<Poll>>> GetPolls()
         {
-            //var polls = await _pollsService.GetPolls();
             List<Poll> polls = await _pollsService.GetPolls();
             if (polls != null)
             {
@@ -44,13 +38,12 @@ namespace LivePolls.Web.Controllers
         [HttpGet]
         public async Task<ActionResult<Poll>> GetOnePoll([FromQuery]  Guid id)
         {
-            Poll p = await _pollsService.GetOnePoll(id);
-            
+
+            Poll p = await _pollsService.GetOnePoll(id);        
             if (p != null)
             {
                 return Ok(p);
             }
-
             return BadRequest(new { message = "Poll is not recognized" });
         }
 
@@ -59,9 +52,10 @@ namespace LivePolls.Web.Controllers
         [HttpPost]
         public async Task<ActionResult<Poll>> CreatePoll([FromBody] CreatePollRequestDTO request)
         {
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            await _pollsService.CreatePoll(request); //.CreatorId, request.Question);
+            await _pollsService.CreatePoll(request); 
             return Ok();
 
         }

@@ -5,6 +5,7 @@ namespace LivePolls.Application.Services
 {
     public class UsersService : IUsersService
     {
+
         private readonly IUsersRepository _repository;
 
         public UsersService(IUsersRepository repository)
