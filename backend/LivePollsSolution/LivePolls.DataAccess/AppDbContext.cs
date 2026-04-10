@@ -23,7 +23,6 @@ namespace LivePolls.DataAccess
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         { }
 
-        // Fluent API
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Уникальность голоса: один пользователь может голосовать в опросе только один раз
