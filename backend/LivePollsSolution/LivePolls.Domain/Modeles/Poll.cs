@@ -20,7 +20,7 @@ namespace LivePolls.Domain.Modeles
         public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
 
         [Column("enddate")]
-        public DateTime? EndDate { get; set; } //= DateTime.UtcNow;
+        public DateTime? EndDate { get; set; } 
 
         [Column("isactive")]
         public Boolean? IsActive { get; set; } = false;

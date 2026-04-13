@@ -9,6 +9,7 @@ namespace LivePolls.Application.Services
     {
         Task<List<Poll>> GetPolls();            
         Task<Poll> GetOnePoll(Guid id);   
-        Task<Poll> CreatePoll(CreatePollRequestDTO request); 
+        Task<Poll> CreatePoll(CreatePollRequestDTO request);
+        Task<PollDetailsDTO?> GetPollDetailsAsync(Guid pollId);
     }
 }

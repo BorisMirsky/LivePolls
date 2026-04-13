@@ -79,6 +79,10 @@ namespace LivePolls.DataAccess.Repo
             return entity!;
         }
 
+        public async Task<int> GetVoteCount(Guid optionId)
+        {
+            return await _context.Votes.CountAsync(v => v.OptionId == optionId);
+        }
 
         public async Task<Poll> CreatePoll(CreatePollRequestDTO request)
         {
@@ -86,6 +90,8 @@ namespace LivePolls.DataAccess.Repo
             var poll = new Poll();
             poll.CreatorId = Guid.NewGuid();
             DateTime dt = DateTime.Now;
+            //DateTime dt = DateTime.Now;
+            dt = new DateTime(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, 0);
             poll.CreatedAt = dt;
             if (request.Lifespan > 0)
             {

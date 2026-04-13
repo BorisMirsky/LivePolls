@@ -8,6 +8,7 @@ namespace LivePolls.Domain.Abstractions
         string Question,
         List<PollOptionResultDTO> Options,
         int TotalVotes,
-        DateTime? EndDate
+        DateTime? EndDate,
+        bool IsActive
     );
 }

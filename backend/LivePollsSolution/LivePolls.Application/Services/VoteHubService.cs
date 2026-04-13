@@ -84,7 +84,8 @@ namespace LivePolls.Application.Services
                 poll.Question,
                 optionResults,
                 totalVotes,
-                poll.EndDate
+                poll.EndDate,
+                poll.IsActive ?? false
             );
         }
 
