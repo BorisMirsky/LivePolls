@@ -15,15 +15,30 @@ namespace LivePolls.Application.Services
                _pollsRepo = pollsRepo;
         }
 
+        private async Task UpdatePollsStatusAsync()
+        {
+            var polls = await _pollsRepo.GetPolls();
+            var now = DateTime.UtcNow;
+            var updatedPolls = polls.Where(p => p.EndDate < now && p.IsActive == true).ToList();
+
+            foreach (var poll in updatedPolls)
+            {
+                poll.IsActive = false;
+                await _pollsRepo.UpdatePoll(poll);
+            }
+        }
+
         public async Task<List<Poll>> GetPolls()
         {
+            await UpdatePollsStatusAsync(); 
             return await _pollsRepo.GetPolls();
         }
 
-        public async Task<Poll> GetOnePoll(Guid id)
+        public async Task<Poll?> GetOnePoll(Guid id)
         {
-            //return await _pollsRepo.GetOnePoll(id);
+            await UpdatePollsStatusAsync(); 
             var poll = await _pollsRepo.GetOnePoll(id);
+
             if (poll != null)
             {
                 foreach (var option in poll.Options)
@@ -31,16 +46,41 @@ namespace LivePolls.Application.Services
                     option.Order = await _pollsRepo.GetVoteCount(option.Id);
                 }
             }
+
             return poll;
         }
 
+        public async Task<Poll> CreatePoll(CreatePollRequestDTO request)
+        {
+            var pollId = Guid.NewGuid();
+            var now = DateTime.UtcNow;
+
+            var poll = new Poll
+            {
+                Id = pollId,
+                CreatorId = Guid.NewGuid(),
+                CreatedAt = now,
+                Question = request.Question,
+                IsActive = request.Lifespan > 0,
+                EndDate = request.Lifespan > 0 ? now.AddDays(request.Lifespan) : now,
+                Options = request.Options.Select(o => new PollOption
+                {
+                    Id = Guid.NewGuid(),
+                    Text = o,
+                    PollId = pollId
+                }).ToList()
+            };
+
+            return await _pollsRepo.CreatePoll(poll);
+        }
 
         public async Task<PollDetailsDTO?> GetPollDetailsAsync(Guid pollId)
         {
+            await UpdatePollsStatusAsync(); 
+
             var poll = await _pollsRepo.GetOnePoll(pollId);
             if (poll == null) return null;
 
-            // Получаем голоса для каждого варианта
             var optionsWithVotes = new List<PollOptionResultDTO>();
             var totalVotes = 0;
 
@@ -56,7 +96,6 @@ namespace LivePolls.Application.Services
                 ));
             }
 
-            // Пересчитываем проценты (создаём НОВЫЙ список, не изменяя старый)
             var finalOptions = new List<PollOptionResultDTO>();
             foreach (var option in optionsWithVotes)
             {
@@ -74,11 +113,6 @@ namespace LivePolls.Application.Services
             );
         }
 
-
-        public async Task<Poll> CreatePoll(CreatePollRequestDTO request)
-        {
-            return await _pollsRepo.CreatePoll(request);
-        }
     }
 }
 

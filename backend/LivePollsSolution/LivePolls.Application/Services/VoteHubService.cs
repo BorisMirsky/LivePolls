@@ -29,16 +29,14 @@ namespace LivePolls.Application.Services
             return poll;
         }
 
-
         public async Task<bool> HasUserVotedAsync(Guid pollId, Guid userId)
         {
             return await _repository.HasUserVotedAsync(pollId, userId);
         }
 
-
         public async Task<Vote> ProcessVoteAsync(Guid pollId, Guid optionId, Guid userId)
         {
-            // Бизнес-логика: проверки
+
             var poll = await _repository.GetPollWithOptionsAsync(pollId);
             if (poll == null)
                 throw new InvalidOperationException("Опрос не найден");
@@ -46,7 +44,7 @@ namespace LivePolls.Application.Services
             if (poll.IsActive == false)
                 throw new InvalidOperationException("Опрос уже закрыт для голосования");
 
-            var option = poll.Options.FirstOrDefault(o => o.Id == optionId);
+            var option = await _repository.GetPollOptionAsync(optionId);
             if (option == null)
                 throw new InvalidOperationException("Вариант ответа не найден");
 
@@ -54,14 +52,23 @@ namespace LivePolls.Application.Services
             if (hasVoted)
                 throw new InvalidOperationException("Вы уже голосовали в этом опросе");
 
-            // Бизнес-логика: проверка на дедлайн
             if (poll.EndDate.HasValue && poll.EndDate.Value < DateTime.UtcNow)
                 throw new InvalidOperationException("Время голосования истекло");
 
-            // Выполняем голосование в транзакции
-            return await _repository.AddVoteAsync(pollId, optionId, userId);
-        }
+            option.Order++;
+            await _repository.UpdatePollOptionAsync(option);
 
+            var vote = new Vote
+            {
+                Id = Guid.NewGuid(),
+                PollId = pollId,
+                OptionId = optionId,
+                UserId = userId,
+                VotedAt = DateTime.UtcNow
+            };
+
+            return await _repository.AddVoteAsync(vote);
+        }
 
         public async Task<PollResultsDto> GetPollResultsAsync(Guid pollId)
         {
@@ -89,17 +96,28 @@ namespace LivePolls.Application.Services
             );
         }
 
-
         public async Task RegisterUserConnectionAsync(Guid userId, string connectionId, Guid? pollId = null)
         {
-            await _repository.AddUserConnectionAsync(userId, connectionId, pollId);
-        }
+            var connection = new UserConnection
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                ConnectionId = connectionId,
+                PollId = pollId,
+                ConnectedAt = DateTime.UtcNow,
+                LastActivity = DateTime.UtcNow
+            };
 
+            await _repository.AddUserConnectionAsync(connection);
+        }
 
         public async Task UnregisterUserConnectionAsync(string connectionId)
         {
-            await _repository.RemoveUserConnectionAsync(connectionId);
+            var connection = await _repository.GetUserConnectionAsync(connectionId);
+            if (connection != null)
+            {
+                await _repository.RemoveUserConnectionAsync(connection);
+            }
         }
-
     }
 }

@@ -4,34 +4,24 @@ namespace LivePolls.Domain.Abstractions
 {
     public interface IVoteHubRepository
     {
-        /// <summary>
-        /// Получает опрос со всеми вариантами ответов
-        /// </summary>
+
         Task<Poll?> GetPollWithOptionsAsync(Guid pollId);
 
-        /// <summary>
-        /// Проверяет, голосовал ли пользователь в опросе
-        /// </summary>
         Task<bool> HasUserVotedAsync(Guid pollId, Guid userId);
 
-        /// <summary>
-        /// Добавляет голос и увеличивает счетчик варианта
-        /// </summary>
-        Task<Vote> AddVoteAsync(Guid pollId, Guid optionId, Guid userId);
+        Task<Vote> AddVoteAsync(Vote vote);
 
-        /// <summary>
-        /// Регистрирует подключение пользователя
-        /// </summary>
-        Task AddUserConnectionAsync(Guid userId, string connectionId, Guid? pollId = null);
+        Task<PollOption?> GetPollOptionAsync(Guid optionId);
 
-        /// <summary>
-        /// Удаляет подключение пользователя
-        /// </summary>
-        Task RemoveUserConnectionAsync(string connectionId);
+        Task UpdatePollOptionAsync(PollOption option);
 
-        /// <summary>
-        /// Получает активные подключения к опросу
-        /// </summary>
+        Task AddUserConnectionAsync(UserConnection connection);
+
+        Task<UserConnection?> GetUserConnectionAsync(string connectionId);
+
+        Task RemoveUserConnectionAsync(UserConnection connection);
+
         Task<IEnumerable<UserConnection>> GetPollConnectionsAsync(Guid pollId);
+
     }
 }

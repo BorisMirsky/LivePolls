@@ -13,13 +13,4 @@ namespace LivePolls.Domain.Abstractions
         bool IsActive,
         List<PollOptionResultDTO> Options
      );
-
-
-    //public record PollOptionResultDTO
-    //(
-    //    Guid OptionId,
-    //    string Text,
-    //    int VoteCount,
-    //    int Percentage
-    //);
 }
