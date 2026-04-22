@@ -29,10 +29,12 @@ namespace LivePolls.Application.Services
             return poll;
         }
 
+
         public async Task<bool> HasUserVotedAsync(Guid pollId, Guid userId)
         {
             return await _repository.HasUserVotedAsync(pollId, userId);
         }
+
 
         public async Task<Vote> ProcessVoteAsync(Guid pollId, Guid optionId, Guid userId)
         {
@@ -70,6 +72,7 @@ namespace LivePolls.Application.Services
             return await _repository.AddVoteAsync(vote);
         }
 
+
         public async Task<PollResultsDto> GetPollResultsAsync(Guid pollId)
         {
             var poll = await _repository.GetPollWithOptionsAsync(pollId);
@@ -96,6 +99,7 @@ namespace LivePolls.Application.Services
             );
         }
 
+
         public async Task RegisterUserConnectionAsync(Guid userId, string connectionId, Guid? pollId = null)
         {
             var connection = new UserConnection
@@ -111,6 +115,7 @@ namespace LivePolls.Application.Services
             await _repository.AddUserConnectionAsync(connection);
         }
 
+
         public async Task UnregisterUserConnectionAsync(string connectionId)
         {
             var connection = await _repository.GetUserConnectionAsync(connectionId);
@@ -119,5 +124,6 @@ namespace LivePolls.Application.Services
                 await _repository.RemoveUserConnectionAsync(connection);
             }
         }
+
     }
 }

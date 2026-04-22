@@ -34,18 +34,6 @@ namespace LivePolls.Web.Controllers
         }
 
 
-        [Route("GetOnePoll1")]
-        [HttpGet]
-        public async Task<ActionResult<Poll>> GetOnePoll1([FromQuery]  Guid id)
-        {
-
-            Poll p = await _pollsService.GetOnePoll(id);        
-            if (p != null)
-            {
-                return Ok(p);
-            }
-            return BadRequest(new { message = "Poll is not recognized" });
-        }
 
         [Route("GetOnePoll")]
         [HttpGet]
@@ -73,5 +61,6 @@ namespace LivePolls.Web.Controllers
             return Ok();
 
         }
+    
     }
 }

@@ -45,6 +45,7 @@ namespace LivePolls.Web.Hubs
             }
         }
 
+
         public async Task Vote(Guid pollId, Guid optionId, Guid userId)
         {
             try
@@ -65,11 +66,13 @@ namespace LivePolls.Web.Hubs
             }
         }
 
+
         public async Task GetCurrentResults(Guid pollId)
         {
             var results = await _voteHubService.GetPollResultsAsync(pollId);
             await Clients.Caller.SendAsync("PollResults", results);
         }
+
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {

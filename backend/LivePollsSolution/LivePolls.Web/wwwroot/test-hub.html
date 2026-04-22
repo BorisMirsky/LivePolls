@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LivePolls - Тестирование SignalR</title>
+    <title>LivePolls</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
     <style>
         body {
@@ -208,6 +208,7 @@
         let hasVoted = false;
         let isInGroup = false;
         let currentPollIsActive = false;
+
 
         function addLog(message, type = 'info') {
             const logsDiv = document.getElementById('logs');

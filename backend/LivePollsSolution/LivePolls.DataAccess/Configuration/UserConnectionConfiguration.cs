@@ -1,5 +1,5 @@
 ﻿
-//using LivePolls.Domain.Entities;
+
 using LivePolls.Domain.Modeles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -37,10 +37,6 @@ namespace LivePolls.DataAccess.Configuration
                 .HasColumnName("lastactivity")
                 .HasDefaultValueSql("GETUTCDATE()");
 
-            // Связь с User
-            //builder.HasOne(uc => uc.User)
-            //    .WithMany()
-            //    .HasForeignKey(uc => uc.UserId);
         }
     }
 }

@@ -15,6 +15,7 @@ namespace LivePolls.Application.Services
                _pollsRepo = pollsRepo;
         }
 
+
         private async Task UpdatePollsStatusAsync()
         {
             var polls = await _pollsRepo.GetPolls();
@@ -28,11 +29,13 @@ namespace LivePolls.Application.Services
             }
         }
 
+
         public async Task<List<Poll>> GetPolls()
         {
             await UpdatePollsStatusAsync(); 
             return await _pollsRepo.GetPolls();
         }
+
 
         public async Task<Poll?> GetOnePoll(Guid id)
         {
@@ -49,6 +52,7 @@ namespace LivePolls.Application.Services
 
             return poll;
         }
+
 
         public async Task<Poll> CreatePoll(CreatePollRequestDTO request)
         {
@@ -73,6 +77,7 @@ namespace LivePolls.Application.Services
 
             return await _pollsRepo.CreatePoll(poll);
         }
+
 
         public async Task<PollDetailsDTO?> GetPollDetailsAsync(Guid pollId)
         {
