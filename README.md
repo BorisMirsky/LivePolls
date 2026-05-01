@@ -40,6 +40,5 @@
 
 - Используется `Entity Framework`.
 
-- Тестовая страница реализована на чистом `js` внутри `html`.
+- Тестовая страница реализована на чистом `js` внутри `html`. Находится в `LivePolls\backend\LivePollsSolution\LivePolls.Web\wwwroot\`
 
-- Позже будет, возможно, полноценный фронтенд на `Vue.js`.
