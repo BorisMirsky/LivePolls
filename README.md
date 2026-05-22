@@ -40,5 +40,5 @@
 
 - Используется `Entity Framework`.
 
-- Тестовая страница реализована на чистом `js` внутри `html`. Находится в `LivePolls\backend\LivePollsSolution\LivePolls.Web\wwwroot\`
+- Полноценного UI нет, тестовая страница реализована на чистом `js` внутри `html`, там же стили в блоке `<style>`. Находится в `LivePolls\backend\LivePollsSolution\LivePolls.Web\wwwroot\`
 
