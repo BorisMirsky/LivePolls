@@ -2,8 +2,7 @@ using LivePolls.Application.Services;
 using LivePolls.DataAccess;
 using LivePolls.Web.Hubs;
 using LivePolls.DataAccess.Repo;
-using LivePolls.Domain.Abstractions;
-using LivePolls.Web.Controllers;
+using LivePolls.Domain.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 

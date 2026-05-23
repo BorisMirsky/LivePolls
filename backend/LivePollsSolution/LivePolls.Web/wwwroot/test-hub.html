@@ -176,8 +176,17 @@
                 <div>
                     <textarea id="optionsInput" placeholder="Варианты ответов (каждый с новой строки)" rows="4" style="width: 90%;"></textarea>
                 </div>
+                <p>Срок жизни опроса (дней)</p>
                 <div>
-                    <input type="number" id="lifespanInput" placeholder="Срок жизни (дней)" value="1" style="width: 90%;" />
+                    <select id="lifespanSelect" style="width: 90%; padding: 8px; margin: 5px;">
+                        <option value="1">1 день</option>
+                        <option value="3">3 дня</option>
+                        <option value="7">7 дней</option>
+                        <option value="14">14 дней</option>
+                        <option value="30">30 дней</option>
+                        <option value="60">60 дней</option>
+                        <option value="90">90 дней</option>
+                    </select>
                 </div>
                 <button id="createPollBtn" disabled>Создать опрос</button>
             </div>
@@ -226,7 +235,7 @@
             const createPollBtn = document.getElementById('createPollBtn');
 
             if (isConnected && currentUser.name) {
-                statusDiv.innerHTML = `<span style="color: green;">✓ Подключен как: ${currentUser.name} (ID: ${currentUser.id})</span>`;
+                statusDiv.innerHTML = `<span style="color: green;">✓ Подключен как: ${currentUser.name}</span>`;
                 connectBtn.disabled = true;
                 disconnectBtn.disabled = false;
                 createPollBtn.disabled = false;
@@ -268,7 +277,6 @@
                 pollElement.className = `poll-item ${poll.isActive ? 'active' : 'inactive'}`;
                 pollElement.innerHTML = `
                         <strong>${poll.question}</strong><br>
-                        <small>ID: ${poll.id}</small><br>
                         <small style="color: ${poll.isActive ? 'green' : 'red'}">${poll.isActive ? 'Активен' : 'Завершён'}</small>
                     `;
                 pollElement.onclick = () => loadPollDetails(poll.id);
@@ -440,10 +448,11 @@
             }
         }
 
+
         async function createPoll() {
             const question = document.getElementById('questionInput').value.trim();
             const optionsText = document.getElementById('optionsInput').value.trim();
-            const lifespan = parseInt(document.getElementById('lifespanInput').value) || 1;
+            const lifespan = parseInt(document.getElementById('lifespanSelect').value);
 
             if (!question || !optionsText) {
                 addLog('Заполните вопрос и варианты ответов', 'error');
@@ -473,6 +482,50 @@
                     addLog('Опрос успешно создан', 'success');
                     document.getElementById('questionInput').value = '';
                     document.getElementById('optionsInput').value = '';
+                    document.getElementById('lifespanSelect').value = '1'; // сброс на 1 день
+                    loadPolls(); // обновляем список опросов
+                } else {
+                    const errorData = await response.json();
+                    addLog(`Ошибка создания опроса: ${errorData.message || response.statusText}`, 'error');
+                }
+            } catch (error) {
+                addLog(`Ошибка: ${error.message}`, 'error');
+            }
+        }
+
+        async function createPoll1() {
+            const question = document.getElementById('questionInput').value.trim();
+            const optionsText = document.getElementById('optionsInput').value.trim();
+            const lifespan = parseInt(document.getElementById('lifespanInput').value) || 1;
+
+            if (!question || !optionsText) {
+                addLog('Заполните вопрос и варианты ответов', 'error');
+                return;
+            }
+
+            const options = optionsText.split('\n').filter(opt => opt.trim().length > 0);
+            if (options.length < 2) {
+                addLog('Добавьте минимум 2 варианта ответа', 'error');
+                return;
+            }
+            
+            try {
+                addLog('Создание нового опроса...', 'info');
+                const response = await fetch('/Polls/CreatePoll', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        creatorId: currentUser.id,
+                        question: question,
+                        options: options,
+                        lifespan: lifespan
+                    })
+                });
+
+                if (response.ok) {
+                    addLog('Опрос успешно создан', 'success');
+                    document.getElementById('questionInput').value = '';
+                    document.getElementById('optionsInput').value = '';
                     document.getElementById('lifespanInput').value = '1';
                     loadPolls();
                 } else {
@@ -482,6 +535,7 @@
                 addLog(`Ошибка: ${error.message}`, 'error');
             }
         }
+
 
         async function connectToSignalR() {
             const userName = document.getElementById('userName').value.trim();
@@ -565,7 +619,7 @@
                 }
             }
         }
-
+        
         // Обработчики событий UI
         document.getElementById('userName').addEventListener('input', (e) => {
             document.getElementById('connectBtn').disabled = !e.target.value.trim();

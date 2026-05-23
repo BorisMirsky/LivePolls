@@ -17,7 +17,7 @@
 
 
 
-### backend и тестовая страница
+### Как пользоваться \ backend и тестовая страница
 
 * Swagger: http://localhost:5063/swagger/index.html       
 
@@ -42,3 +42,8 @@
 
 - Полноценного UI нет, тестовая страница реализована на чистом `js` внутри `html`, там же стили в блоке `<style>`. Находится в `LivePolls\backend\LivePollsSolution\LivePolls.Web\wwwroot\`
 
+
+
+### ToDo
+
+- 

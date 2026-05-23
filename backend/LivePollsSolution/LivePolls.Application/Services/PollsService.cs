@@ -1,6 +1,7 @@
 ﻿
 using LivePolls.Domain.Abstractions;
 using LivePolls.Domain.Modeles;
+using LivePolls.Domain.Contracts;
 
 
 namespace LivePolls.Application.Services

@@ -4,7 +4,7 @@ using LivePolls.Domain.Modeles;
 
 
 
-namespace LivePolls.Application.Services
+namespace LivePolls.Domain.Contracts
 {
     public interface IPollsRepo
     {

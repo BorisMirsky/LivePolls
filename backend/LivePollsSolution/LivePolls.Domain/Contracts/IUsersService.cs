@@ -1,7 +1,8 @@
 ﻿using LivePolls.Domain.Modeles;
 
 
-namespace LivePolls.Domain.Abstractions
+
+namespace LivePolls.Domain.Contracts
 {
     public interface IUsersService
     {

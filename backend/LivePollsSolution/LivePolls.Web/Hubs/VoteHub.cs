@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using LivePolls.Domain.Abstractions;
+using LivePolls.Domain.Contracts;
+
 
 
 namespace LivePolls.Web.Hubs

@@ -3,7 +3,7 @@ using LivePolls.Domain.Abstractions;
 
 
 
-namespace LivePolls.Application.Services
+namespace LivePolls.Domain.Contracts
 {
     public interface IPollsService
     {
